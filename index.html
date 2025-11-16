@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>8A Helper — Demo</title>
+
+  <!-- compat SDK: простой способ для статического index.html -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body { font-family: Inter, Arial; background:#f6f8fb; color:#222; padding:20px; }
+    .container { max-width:900px; margin:0 auto; background:white; padding:20px; border-radius:8px; box-shadow:0 4px 18px rgba(0,0,0,0.06); }
+    .row { display:flex; gap:12px; align-items:center; }
+    input, textarea, select { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #e2e8f0; }
+    button { padding:8px 12px; border-radius:6px; border:0; background:#2563eb; color:white; cursor:pointer; }
+    button.ghost { background:transparent; color:#333; border:1px solid #ddd; }
+    .homework { border:1px solid #eee; padding:12px; border-radius:8px; margin-bottom:10px; }
+    .admin-tag { display:inline-block; background:#fef3c7; color:#92400e; padding:4px 8px; border-radius:8px; font-size:12px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .small { font-size:13px; color:#666; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <h1>8A Helper</h1>
+    <div>
+      <span id="user-email" class="small"></span>
+      <button id="btn-logout" class="ghost hidden" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- Логин / регистрация -->
+  <div id="auth-section">
+    <h3>Войти или зарегистрироваться</h3>
+    <div style="max-width:420px;">
+      <input id="email" type="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Пароль (≥6)" />
+      <div style="margin-top:8px;">
+        <button onclick="login()">Войти</button>
+        <button onclick="register()" class="ghost">Зарегистрироваться</button>
+      </div>
+      <p class="small">После регистрации зайди в Firestore → collection <strong>admins</strong> и добавь документ с id = uid пользователя и { isAdmin: true } чтобы дать права администратора.</p>
+    </div>
+    <div id="auth-msg" class="small" style="color:red"></div>
+  </div>
+
+  <!-- Главная область: список домашек и форма добавления (только для админов) -->
+  <div id="app-section" class="hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3>Домашки <span id="admin-indicator" class="admin-tag hidden">Admin</span></h3>
+      <div>
+        <button onclick="reloadOnce()">Обновить</button>
+      </div>
+    </div>
+
+    <div id="add-form" class="hidden" style="margin:12px 0; border:1px dashed #e6eefc; padding:12px; border-radius:8px;">
+      <h4>Добавить домашку</h4>
+      <input id="hw-title" placeholder="Заголовок (предмет и краткое описание)" />
+      <textarea id="hw-desc" placeholder="Описание (другие детали)" style="height:80px;"></textarea>
+      <div style="display:flex; gap:10px;">
+        <input id="hw-deadline" type="date" />
+        <select id="hw-subject">
+          <option value="">Предмет (по желанию)</option>
+          <option>Математика</option>
+          <option>Физика</option>
+          <option>Информатика</option>
+          <option>Английский</option>
+        </select>
+        <button onclick="addHomework()">Добавить</button>
+      </div>
+      <div id="add-msg" class="small" style="color:green; margin-top:8px"></div>
+    </div>
+
+    <div id="homework-list" style="margin-top:12px;"></div>
+  </div>
+</div>
+
+<script>
+
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAqwhaz_726NPUVhtmDI8W6Xuo4GCQNUWM",
+  authDomain: "hw-helper-b47ca.firebaseapp.com",
+  projectId: "hw-helper-b47ca",
+  storageBucket: "hw-helper-b47ca.firebasestorage.app",
+  messagingSenderId: "939392073070",
+  appId: "1:939392073070:web:7d0a4508459ea9e586557f",
+  measurementId: "G-2EVV90NXFS"
+};
+firebase.initializeApp(firebaseConfig);
+// Initialize Firebase
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+  // Переменные состояния
+  let currentUser = null;
+  let currentIsAdmin = false;
+  let hwUnsubscribe = null; // для onSnapshot
+
+  const el = id => document.getElementById(id);
+
+  // Обработчик аутентификации — обязательно определён после auth
+  auth.onAuthStateChanged(async user => {
+    currentUser = user;
+    if (user) {
+      console.log("Signed in:", user.uid, user.email);
+      el('user-email').innerText = user.email || user.uid;
+      el('btn-logout').classList.remove('hidden');
+      el('auth-section').classList.add('hidden');
+      el('app-section').classList.remove('hidden');
+
+      // Проверяем admin-права
+      currentIsAdmin = await checkAdmin(user.uid);
+      if (currentIsAdmin) {
+        el('admin-indicator').classList.remove('hidden');
+        el('add-form').classList.remove('hidden');
+      } else {
+        el('admin-indicator').classList.add('hidden');
+        el('add-form').classList.add('hidden');
+      }
+
+      // Подписываемся на домашки (реалтайм)
+      subscribeHomeworks();
+    } else {
+      // не авторизован
+      currentIsAdmin = false;
+      el('user-email').innerText = '';
+      el('btn-logout').classList.add('hidden');
+      el('auth-section').classList.remove('hidden');
+      el('app-section').classList.add('hidden');
+
+      if (hwUnsubscribe) { hwUnsubscribe(); hwUnsubscribe = null; }
+    }
+  });
+
+  // Регистрация
+  function register() {
+    el('auth-msg').innerText = '';
+    const email = el('email').value.trim();
+    const password = el('password').value;
+    if (!email || password.length < 6) { el('auth-msg').innerText = 'Введите email и пароль (≥6 символов).'; return; }
+    auth.createUserWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        const uid = userCredential.user.uid;
+        // опционально: создать профиль
+        db.collection('users').doc(uid).set({ email: email, created: Date.now() }).catch(e=>console.error(e));
+      })
+      .catch(err => el('auth-msg').innerText = err.message);
+  }
+
+  // Логин
+  function login() {
+    el('auth-msg').innerText = '';
+    const email = el('email').value.trim();
+    const password = el('password').value;
+    if (!email || !password) { el('auth-msg').innerText = 'Введите email и пароль.'; return; }
+    auth.signInWithEmailAndPassword(email, password).catch(err => el('auth-msg').innerText = err.message);
+  }
+
+  // Выход
+  function logout() {
+    auth.signOut();
+  }
+
+  // Проверка admin
+  async function checkAdmin(uid) {
+    try {
+      const doc = await db.collection('admins').doc(uid).get();
+      return doc.exists && doc.data().isAdmin === true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
+  // Подписка на домашки (реалтайм)
+  function subscribeHomeworks() {
+    if (hwUnsubscribe) { hwUnsubscribe(); hwUnsubscribe = null; }
+    hwUnsubscribe = db.collection('homework').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+      renderHomeworks(snapshot);
+    }, err => {
+      console.error("SNAPSHOT ERR", err);
+    });
+  }
+
+  // Рендер списка
+  function renderHomeworks(snapshot) {
+    const list = el('homework-list');
+    list.innerHTML = '';
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      const div = document.createElement('div');
+      div.className = 'homework';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><strong>${escapeHtml(d.title || 'Без названия')}</strong> <div class="small">${d.subject || ''}</div></div>
+          <div class="small" style="text-align:right">${d.deadline || ''}<br><span class="small">by ${d.authorEmail||'admin'}</span></div>
+        </div>
+        <div style="margin-top:8px">${escapeHtml(d.description || '')}</div>
+      `;
+      list.appendChild(div);
+    });
+    if (snapshot.size === 0) list.innerHTML = '<div class="small">Домашек пока нет.</div>';
+  }
+
+  // Добавление домашки
+  async function addHomework() {
+    if (!currentUser) return alert('Войдите');
+    if (!currentIsAdmin) return alert('Только админ может добавлять.');
+
+    const title = el('hw-title').value.trim();
+    const desc = el('hw-desc').value.trim();
+    const deadline = el('hw-deadline').value || '';
+    const subject = el('hw-subject').value || '';
+
+    if (!title) { el('add-msg').innerText = 'Введите заголовок.'; return; }
+    el('add-msg').innerText = 'Сохраняю...';
+
+    try {
+      await db.collection('homework').add({
+        title, description: desc, deadline, subject,
+        authorUid: currentUser.uid, authorEmail: currentUser.email || '',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      el('add-msg').innerText = 'Добавлено!';
+      el('hw-title').value = ''; el('hw-desc').value = ''; el('hw-deadline').value = ''; el('hw-subject').value = '';
+      setTimeout(()=> el('add-msg').innerText = '', 2000);
+    } catch (e) {
+      console.error(e);
+      el('add-msg').innerText = 'Ошибка при добавлении.';
+    }
+  }
+
+  function reloadOnce() {
+    if (hwUnsubscribe) { hwUnsubscribe(); hwUnsubscribe = null; }
+    subscribeHomeworks();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+</script>
+
+</body>
+</html>
