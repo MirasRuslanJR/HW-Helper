@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>8A Helper — Demo</title>
+  <title>Homework Helper — Beta test!</title>
 
   <!-- compat SDK: простой способ для статического index.html -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -27,10 +27,10 @@
 <body>
 <div class="container">
   <div class="topbar">
-    <h1>8A Helper</h1>
+    <h1>Homework Helper</h1>
     <div>
       <span id="user-email" class="small"></span>
-      <button id="btn-logout" class="ghost hidden" onclick="logout()">Logout</button>
+      <button id="btn-logout" class="ghost hidden" onclick="logout()">Шығу</button>
     </div>
   </div>
 
@@ -38,15 +38,15 @@
 
   <!-- Логин / регистрация -->
   <div id="auth-section">
-    <h3>Войти или зарегистрироваться</h3>
+    <h3>Кіру немесе тіркелу</h3>
     <div style="max-width:420px;">
       <input id="email" type="email" placeholder="Email" />
-      <input id="password" type="password" placeholder="Пароль (≥6)" />
+      <input id="password" type="password" placeholder="Құпиясөз (≥6)" />
       <div style="margin-top:8px;">
-        <button onclick="login()">Войти</button>
-        <button onclick="register()" class="ghost">Зарегистрироваться</button>
+        <button onclick="login()">Кіру</button>
+        <button onclick="register()" class="ghost">Тіркелу</button>
       </div>
-      <p class="small">После регистрации зайди в Firestore → collection <strong>admins</strong> и добавь документ с id = uid пользователя и { isAdmin: true } чтобы дать права администратора.</p>
+      <p class="small">Егер сізде аккаунт бар болса, <strong>email мен парольді енгізіп — «Кіру» батырмасын басыңыз</strong> және үй тапсырмалары бар басты бетке өте аласыз. Егер аккаунтыңыз әлі болмаса, кіріс бетінде email-іңді енгізіп, құпиясөзді енгізіп, <strong>«Тіркелу» батырмасын басыңыз</strong>.</p>
     </div>
     <div id="auth-msg" class="small" style="color:red"></div>
   </div>
@@ -54,26 +54,34 @@
   <!-- Главная область: список домашек и форма добавления (только для админов) -->
   <div id="app-section" class="hidden">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3>Домашки <span id="admin-indicator" class="admin-tag hidden">Admin</span></h3>
+      <h3>Үй жұмыстар <span id="admin-indicator" class="admin-tag hidden">Admin</span></h3>
       <div>
-        <button onclick="reloadOnce()">Обновить</button>
+        <button onclick="reloadOnce()">Жаңарту</button>
       </div>
     </div>
 
     <div id="add-form" class="hidden" style="margin:12px 0; border:1px dashed #e6eefc; padding:12px; border-radius:8px;">
-      <h4>Добавить домашку</h4>
-      <input id="hw-title" placeholder="Заголовок (предмет и краткое описание)" />
-      <textarea id="hw-desc" placeholder="Описание (другие детали)" style="height:80px;"></textarea>
+      <h4>Үй жұмысын қосу</h4>
+      <input id="hw-title" placeholder="Тақырып (пән және қысқаша сипаттама)" />
+      <textarea id="hw-desc" placeholder="Сипаттама (басқа мәліметтер)" style="height:80px;"></textarea>
       <div style="display:flex; gap:10px;">
         <input id="hw-deadline" type="date" />
         <select id="hw-subject">
-          <option value="">Предмет (по желанию)</option>
-          <option>Математика</option>
-          <option>Физика</option>
+          <option value="">Пән</option>
+          <option>Ағылшын тілі</option>
+          <option>Биология</option>
+          <option>География</option>
+          <option>Дүниежүзі тарихы</option>
           <option>Информатика</option>
-          <option>Английский</option>
+          <option>Қазақ тілі мен әдебиеті</option>
+          <option>Қазақстан тарихы</option>
+          <option>Құқық Негіздері</option>
+          <option>Математика</option>
+          <option>Орыс тілі мен әдебиеті</option>
+          <option>Физика</option>
+          <option>Химия</option>
         </select>
-        <button onclick="addHomework()">Добавить</button>
+        <button onclick="addHomework()">Қосу</button>
       </div>
       <div id="add-msg" class="small" style="color:green; margin-top:8px"></div>
     </div>
@@ -149,7 +157,7 @@ const db = firebase.firestore();
     el('auth-msg').innerText = '';
     const email = el('email').value.trim();
     const password = el('password').value;
-    if (!email || password.length < 6) { el('auth-msg').innerText = 'Введите email и пароль (≥6 символов).'; return; }
+    if (!email || password.length < 6) { el('auth-msg').innerText = 'Электрондық пошта мен құпия сөзді енгізіңіз (≥6 таңба).'; return; }
     auth.createUserWithEmailAndPassword(email, password)
       .then((userCredential) => {
         const uid = userCredential.user.uid;
@@ -164,7 +172,7 @@ const db = firebase.firestore();
     el('auth-msg').innerText = '';
     const email = el('email').value.trim();
     const password = el('password').value;
-    if (!email || !password) { el('auth-msg').innerText = 'Введите email и пароль.'; return; }
+    if (!email || !password) { el('auth-msg').innerText = 'Электрондық пошта мен құпия сөзді енгізіңіз.'; return; }
     auth.signInWithEmailAndPassword(email, password).catch(err => el('auth-msg').innerText = err.message);
   }
 
@@ -204,28 +212,28 @@ const db = firebase.firestore();
       div.className = 'homework';
       div.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div><strong>${escapeHtml(d.title || 'Без названия')}</strong> <div class="small">${d.subject || ''}</div></div>
+          <div><strong>${escapeHtml(d.title || 'Атауы жоқ')}</strong> <div class="small">${d.subject || ''}</div></div>
           <div class="small" style="text-align:right">${d.deadline || ''}<br><span class="small">by ${d.authorEmail||'admin'}</span></div>
         </div>
         <div style="margin-top:8px">${escapeHtml(d.description || '')}</div>
       `;
       list.appendChild(div);
     });
-    if (snapshot.size === 0) list.innerHTML = '<div class="small">Домашек пока нет.</div>';
+    if (snapshot.size === 0) list.innerHTML = '<div class="small">Әзірге үй жұмысы жоқ.</div>';
   }
 
   // Добавление домашки
   async function addHomework() {
-    if (!currentUser) return alert('Войдите');
-    if (!currentIsAdmin) return alert('Только админ может добавлять.');
+    if (!currentUser) return alert('Алдымен, өз аккаунтыңызға кіріңіз');
+    if (!currentIsAdmin) return alert('Тек админ ғана қоса алады (Мирастан сұраңыз).');
 
     const title = el('hw-title').value.trim();
     const desc = el('hw-desc').value.trim();
     const deadline = el('hw-deadline').value || '';
     const subject = el('hw-subject').value || '';
 
-    if (!title) { el('add-msg').innerText = 'Введите заголовок.'; return; }
-    el('add-msg').innerText = 'Сохраняю...';
+    if (!title) { el('add-msg').innerText = 'Тақырыпты енгізіңіз.'; return; }
+    el('add-msg').innerText = 'Сақтап жатырмын...';
 
     try {
       await db.collection('homework').add({
@@ -233,12 +241,12 @@ const db = firebase.firestore();
         authorUid: currentUser.uid, authorEmail: currentUser.email || '',
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      el('add-msg').innerText = 'Добавлено!';
+      el('add-msg').innerText = 'Қосылды!';
       el('hw-title').value = ''; el('hw-desc').value = ''; el('hw-deadline').value = ''; el('hw-subject').value = '';
       setTimeout(()=> el('add-msg').innerText = '', 2000);
     } catch (e) {
       console.error(e);
-      el('add-msg').innerText = 'Ошибка при добавлении.';
+      el('add-msg').innerText = 'Қосу кезінде қате.';
     }
   }
 
