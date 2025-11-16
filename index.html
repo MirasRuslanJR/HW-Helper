@@ -1,264 +1,230 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kz">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Homework Helper — Beta test!</title>
-
-  <!-- compat SDK: простой способ для статического index.html -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
   <style>
-    body { font-family: Inter, Arial; background:#f6f8fb; color:#222; padding:20px; }
-    .container { max-width:900px; margin:0 auto; background:white; padding:20px; border-radius:8px; box-shadow:0 4px 18px rgba(0,0,0,0.06); }
-    .row { display:flex; gap:12px; align-items:center; }
-    input, textarea, select { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #e2e8f0; }
-    button { padding:8px 12px; border-radius:6px; border:0; background:#2563eb; color:white; cursor:pointer; }
-    button.ghost { background:transparent; color:#333; border:1px solid #ddd; }
-    .homework { border:1px solid #eee; padding:12px; border-radius:8px; margin-bottom:10px; }
-    .admin-tag { display:inline-block; background:#fef3c7; color:#92400e; padding:4px 8px; border-radius:8px; font-size:12px; }
-    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-    .small { font-size:13px; color:#666; }
-    .hidden { display:none; }
+    :root{--bg:#f6f8fb;--card:#ffffff;--muted:#666;--primary:#2563eb;--border:#e2e8f0;--shadow:0 4px 18px rgba(0,0,0,0.06);--radius:8px;--max-w:900px}
+    html,body{height:100%;margin:0}
+    body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:#222;padding:20px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-size:16px;line-height:1.45}
+    .container{max-width:var(--max-w);margin:0 auto;background:var(--card);padding:20px;border-radius:var(--radius);box-shadow:var(--shadow)}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .row{display:flex;gap:12px;align-items:center}
+    h1{margin:0;font-size:20px}
+    h3{margin:6px 0 0 0;font-size:18px}
+    h4{margin:6px 0 8px 0;font-size:16px}
+    input,textarea,select{width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);box-sizing:border-box;font-size:15px;background:#fff}
+    textarea{resize:vertical;min-height:80px}
+    button{padding:9px 14px;border-radius:6px;border:0;background:var(--primary);color:white;cursor:pointer;font-size:15px}
+    button.ghost{background:transparent;color:#333;border:1px solid #ddd}
+    .homework{border:1px solid #eee;padding:12px;border-radius:8px;margin-bottom:10px;background:#fff}
+    .admin-tag{display:inline-block;background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:8px;font-size:12px}
+    .small{font-size:13px;color:var(--muted)}
+    .hidden{display:none}
+    #add-form{border:1px dashed #e6eefc;padding:12px;border-radius:8px;background:linear-gradient(180deg,rgba(246,248,251,0.6),rgba(255,255,255,0.6))}
+    .flex-between{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .mt-8{margin-top:8px}
+    .mt-12{margin-top:12px}
+    @media (max-width:1024px){
+      :root{--max-w:720px}
+      .row{flex-direction:column;align-items:stretch;gap:10px}
+      .topbar{flex-direction:column;align-items:flex-start;gap:8px}
+      .flex-between{flex-direction:column;align-items:flex-start;gap:8px}
+      input,textarea,select,button{font-size:15px;padding:10px}
+      h1{font-size:18px}
+      h3{font-size:16px}
+    }
+    @media (max-width:768px){
+      body{padding:12px;font-size:15px}
+      .container{padding:12px;border-radius:10px}
+      :root{--max-w:100%}
+      h1{font-size:18px}
+      h3{font-size:15px}
+      h4{font-size:14px}
+      input,textarea,select,button{font-size:14px;padding:8px 10px}
+      button{width:100%;box-sizing:border-box}
+      #auth-section>div>div{display:flex;flex-direction:column;gap:8px}
+      #auth-section .row,.row{gap:8px}
+      #add-form>div[style]{display:flex;flex-direction:column;gap:8px}
+      #add-form .mt-12{margin-top:8px}
+      .homework{padding:10px}
+      .admin-tag{padding:3px 6px;font-size:11px}
+      .small{font-size:12px}
+    }
+    .email-truncate{display:inline-block;max-width:36%;min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;cursor:default}
+    @media (max-width:768px){.email-truncate{max-width:55%;font-size:14px}}
+    @media (max-width:420px){body{font-size:14px}h1{font-size:17px}.container{padding:10px}input,textarea,select{padding:8px}button{padding:8px}}
+    .homework .meta{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:nowrap}
+    .homework .meta-left{flex:1 1 0;min-width:0}
+    .homework .meta-right{flex:0 0 auto;width:clamp(120px,30%,260px);max-width:40%;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .homework .hw-author{display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+    .email-truncate{display:inline-block;max-width:clamp(100px,36%,320px);min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    @media (max-width:680px){.homework .meta{flex-wrap:wrap}.homework .meta-right{width:100%;max-width:100%;text-align:left;margin-top:6px}.email-truncate{max-width:55%}}
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="topbar">
-    <h1>Homework Helper</h1>
-    <div>
-      <span id="user-email" class="small"></span>
-      <button id="btn-logout" class="ghost hidden" onclick="logout()">Шығу</button>
-    </div>
-  </div>
-
-  <hr>
-
-  <!-- Логин / регистрация -->
-  <div id="auth-section">
-    <h3>Кіру немесе тіркелу</h3>
-    <div style="max-width:420px;">
-      <input id="email" type="email" placeholder="Email" />
-      <input id="password" type="password" placeholder="Құпиясөз (≥6)" />
-      <div style="margin-top:8px;">
-        <button onclick="login()">Кіру</button>
-        <button onclick="register()" class="ghost">Тіркелу</button>
-      </div>
-      <p class="small">Егер сізде аккаунт бар болса, <strong>email мен парольді енгізіп — «Кіру» батырмасын басыңыз</strong> және үй тапсырмалары бар басты бетке өте аласыз. Егер аккаунтыңыз әлі болмаса, кіріс бетінде email-іңді енгізіп, құпиясөзді енгізіп, <strong>«Тіркелу» батырмасын басыңыз</strong>.</p>
-    </div>
-    <div id="auth-msg" class="small" style="color:red"></div>
-  </div>
-
-  <!-- Главная область: список домашек и форма добавления (только для админов) -->
-  <div id="app-section" class="hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3>Үй жұмыстар <span id="admin-indicator" class="admin-tag hidden">Admin</span></h3>
+  <div class="container">
+    <div class="topbar">
+      <h1>Homework Helper - Beta version</h1>
       <div>
-        <button onclick="reloadOnce()">Жаңарту</button>
+        <span id="user-email" class="small email-truncate" title=""></span>
+        <button id="btn-logout" class="ghost hidden" onclick="logout()">Шығу</button>
       </div>
     </div>
-
-    <div id="add-form" class="hidden" style="margin:12px 0; border:1px dashed #e6eefc; padding:12px; border-radius:8px;">
-      <h4>Үй жұмысын қосу</h4>
-      <input id="hw-title" placeholder="Тақырып (пән және қысқаша сипаттама)" />
-      <textarea id="hw-desc" placeholder="Сипаттама (басқа мәліметтер)" style="height:80px;"></textarea>
-      <div style="display:flex; gap:10px;">
-        <input id="hw-deadline" type="date" />
-        <select id="hw-subject">
-          <option value="">Пән</option>
-          <option>Ағылшын тілі</option>
-          <option>Биология</option>
-          <option>География</option>
-          <option>Дүниежүзі тарихы</option>
-          <option>Информатика</option>
-          <option>Қазақ тілі мен әдебиеті</option>
-          <option>Қазақстан тарихы</option>
-          <option>Құқық Негіздері</option>
-          <option>Математика</option>
-          <option>Орыс тілі мен әдебиеті</option>
-          <option>Физика</option>
-          <option>Химия</option>
-        </select>
-        <button onclick="addHomework()">Қосу</button>
-      </div>
-      <div id="add-msg" class="small" style="color:green; margin-top:8px"></div>
-    </div>
-
-    <div id="homework-list" style="margin-top:12px;"></div>
-  </div>
-</div>
-
-<script>
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAqwhaz_726NPUVhtmDI8W6Xuo4GCQNUWM",
-  authDomain: "hw-helper-b47ca.firebaseapp.com",
-  projectId: "hw-helper-b47ca",
-  storageBucket: "hw-helper-b47ca.firebasestorage.app",
-  messagingSenderId: "939392073070",
-  appId: "1:939392073070:web:7d0a4508459ea9e586557f",
-  measurementId: "G-2EVV90NXFS"
-};
-firebase.initializeApp(firebaseConfig);
-// Initialize Firebase
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-  // Переменные состояния
-  let currentUser = null;
-  let currentIsAdmin = false;
-  let hwUnsubscribe = null; // для onSnapshot
-
-  const el = id => document.getElementById(id);
-
-  // Обработчик аутентификации — обязательно определён после auth
-  auth.onAuthStateChanged(async user => {
-    currentUser = user;
-    if (user) {
-      console.log("Signed in:", user.uid, user.email);
-      el('user-email').innerText = user.email || user.uid;
-      el('btn-logout').classList.remove('hidden');
-      el('auth-section').classList.add('hidden');
-      el('app-section').classList.remove('hidden');
-
-      // Проверяем admin-права
-      currentIsAdmin = await checkAdmin(user.uid);
-      if (currentIsAdmin) {
-        el('admin-indicator').classList.remove('hidden');
-        el('add-form').classList.remove('hidden');
-      } else {
-        el('admin-indicator').classList.add('hidden');
-        el('add-form').classList.add('hidden');
-      }
-
-      // Подписываемся на домашки (реалтайм)
-      subscribeHomeworks();
-    } else {
-      // не авторизован
-      currentIsAdmin = false;
-      el('user-email').innerText = '';
-      el('btn-logout').classList.add('hidden');
-      el('auth-section').classList.remove('hidden');
-      el('app-section').classList.add('hidden');
-
-      if (hwUnsubscribe) { hwUnsubscribe(); hwUnsubscribe = null; }
-    }
-  });
-
-  // Регистрация
-  function register() {
-    el('auth-msg').innerText = '';
-    const email = el('email').value.trim();
-    const password = el('password').value;
-    if (!email || password.length < 6) { el('auth-msg').innerText = 'Электрондық пошта мен құпия сөзді енгізіңіз (≥6 таңба).'; return; }
-    auth.createUserWithEmailAndPassword(email, password)
-      .then((userCredential) => {
-        const uid = userCredential.user.uid;
-        // опционально: создать профиль
-        db.collection('users').doc(uid).set({ email: email, created: Date.now() }).catch(e=>console.error(e));
-      })
-      .catch(err => el('auth-msg').innerText = err.message);
-  }
-
-  // Логин
-  function login() {
-    el('auth-msg').innerText = '';
-    const email = el('email').value.trim();
-    const password = el('password').value;
-    if (!email || !password) { el('auth-msg').innerText = 'Электрондық пошта мен құпия сөзді енгізіңіз.'; return; }
-    auth.signInWithEmailAndPassword(email, password).catch(err => el('auth-msg').innerText = err.message);
-  }
-
-  // Выход
-  function logout() {
-    auth.signOut();
-  }
-
-  // Проверка admin
-  async function checkAdmin(uid) {
-    try {
-      const doc = await db.collection('admins').doc(uid).get();
-      return doc.exists && doc.data().isAdmin === true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  }
-
-  // Подписка на домашки (реалтайм)
-  function subscribeHomeworks() {
-    if (hwUnsubscribe) { hwUnsubscribe(); hwUnsubscribe = null; }
-    hwUnsubscribe = db.collection('homework').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-      renderHomeworks(snapshot);
-    }, err => {
-      console.error("SNAPSHOT ERR", err);
-    });
-  }
-
-  // Рендер списка
-  function renderHomeworks(snapshot) {
-    const list = el('homework-list');
-    list.innerHTML = '';
-    snapshot.forEach(doc => {
-      const d = doc.data();
-      const div = document.createElement('div');
-      div.className = 'homework';
-      div.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div><strong>${escapeHtml(d.title || 'Атауы жоқ')}</strong> <div class="small">${d.subject || ''}</div></div>
-          <div class="small" style="text-align:right">${d.deadline || ''}<br><span class="small">by ${d.authorEmail||'admin'}</span></div>
+    <hr>
+    <div id="auth-section">
+      <h3>Кіру немесе тіркелу</h3>
+      <div style="max-width:420px">
+        <input id="email" type="email" placeholder="Email" />
+        <input id="password" type="password" placeholder="Құпиясөз (≥6)" />
+        <div style="margin-top:8px">
+          <button onclick="login()">Кіру</button>
+          <button onclick="register()" class="ghost">Тіркелу</button>
         </div>
-        <div style="margin-top:8px">${escapeHtml(d.description || '')}</div>
-      `;
-      list.appendChild(div);
+        <p class="small">Егер сізде аккаунт бар болса, <strong>email мен парольді енгізіп — «Кіру» батырмасын басыңыз</strong> және үй тапсырмалары бар басты бетке өте аласыз. Егер аккаунтыңыз әлі болмаса, кіріс бетінде email-іңді енгізіп, құпиясөзді енгізіп, <strong>«Тіркелу» батырмасын басыңыз</strong>.</p>
+      </div>
+      <div id="auth-msg" class="small" style="color:red"></div>
+    </div>
+    <div id="app-section" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Үй жұмыстар <span id="admin-indicator" class="admin-tag hidden">Admin</span></h3>
+        <div><button onclick="reloadOnce()">Жаңарту</button></div>
+      </div>
+      <div id="add-form" class="hidden" style="margin:12px 0;border:1px dashed #e6eefc;padding:12px;border-radius:8px">
+        <h4>Үй жұмысын қосу</h4>
+        <input id="hw-title" placeholder="Тақырып (пән және қысқаша сипаттама)" />
+        <textarea id="hw-desc" placeholder="Сипаттама (басқа мәліметтер)" style="height:80px"></textarea>
+        <div style="display:flex;gap:10px">
+          <input id="hw-deadline" type="date" />
+          <select id="hw-subject">
+            <option value="">Пән</option>
+            <option>Ағылшын тілі</option>
+            <option>Биология</option>
+            <option>География</option>
+            <option>Дүниежүзі тарихы</option>
+            <option>Информатика</option>
+            <option>Қазақ тілі мен әдебиеті</option>
+            <option>Қазақстан тарихы</option>
+            <option>Құқық Негіздері</option>
+            <option>Математика</option>
+            <option>Орыс тілі мен әдебиеті</option>
+            <option>Физика</option>
+            <option>Химия</option>
+          </select>
+          <button onclick="addHomework()">Қосу</button>
+        </div>
+        <div id="add-msg" class="small" style="color:green;margin-top:8px"></div>
+      </div>
+      <div id="homework-list" style="margin-top:12px"></div>
+    </div>
+  </div>
+  <script>
+    const firebaseConfig={apiKey:"AIzaSyAqwhaz_726NPUVhtmDI8W6Xuo4GCQNUWM",authDomain:"hw-helper-b47ca.firebaseapp.com",projectId:"hw-helper-b47ca",storageBucket:"hw-helper-b47ca.firebasestorage.app",messagingSenderId:"939392073070",appId:"1:939392073070:web:7d0a4508459ea9e586557f",measurementId:"G-2EVV90NXFS"};
+    firebase.initializeApp(firebaseConfig);
+    const auth=firebase.auth();
+    const db=firebase.firestore();
+    let currentUser=null;
+    let currentIsAdmin=false;
+    let hwUnsubscribe=null;
+    const el=id=>document.getElementById(id);
+    auth.onAuthStateChanged(async user=>{
+      currentUser=user;
+      if(user){
+        el('user-email').innerText=user.email||user.uid;
+        el('user-email').title=user.email||user.uid;
+        el('btn-logout').classList.remove('hidden');
+        el('auth-section').classList.add('hidden');
+        el('app-section').classList.remove('hidden');
+        currentIsAdmin=await checkAdmin(user.uid);
+        if(currentIsAdmin){el('admin-indicator').classList.remove('hidden');el('add-form').classList.remove('hidden')}else{el('admin-indicator').classList.add('hidden');el('add-form').classList.add('hidden')}
+        subscribeHomeworks();
+      }else{
+        currentIsAdmin=false;
+        el('user-email').innerText='';
+        el('user-email').title='';
+        el('btn-logout').classList.add('hidden');
+        el('auth-section').classList.remove('hidden');
+        el('app-section').classList.add('hidden');
+        if(hwUnsubscribe){hwUnsubscribe();hwUnsubscribe=null}
+      }
     });
-    if (snapshot.size === 0) list.innerHTML = '<div class="small">Әзірге үй жұмысы жоқ.</div>';
-  }
-
-  // Добавление домашки
-  async function addHomework() {
-    if (!currentUser) return alert('Алдымен, өз аккаунтыңызға кіріңіз');
-    if (!currentIsAdmin) return alert('Тек админ ғана қоса алады (Мирастан сұраңыз).');
-
-    const title = el('hw-title').value.trim();
-    const desc = el('hw-desc').value.trim();
-    const deadline = el('hw-deadline').value || '';
-    const subject = el('hw-subject').value || '';
-
-    if (!title) { el('add-msg').innerText = 'Тақырыпты енгізіңіз.'; return; }
-    el('add-msg').innerText = 'Сақтап жатырмын...';
-
-    try {
-      await db.collection('homework').add({
-        title, description: desc, deadline, subject,
-        authorUid: currentUser.uid, authorEmail: currentUser.email || '',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      el('add-msg').innerText = 'Қосылды!';
-      el('hw-title').value = ''; el('hw-desc').value = ''; el('hw-deadline').value = ''; el('hw-subject').value = '';
-      setTimeout(()=> el('add-msg').innerText = '', 2000);
-    } catch (e) {
-      console.error(e);
-      el('add-msg').innerText = 'Қосу кезінде қате.';
+    function register(){
+      el('auth-msg').innerText='';
+      const email=el('email').value.trim();
+      const password=el('password').value;
+      if(!email||password.length<6){el('auth-msg').innerText='Электрондық пошта мен құпия сөзді енгізіңіз (≥6 таңба).';return}
+      auth.createUserWithEmailAndPassword(email,password).then(userCredential=>{
+        const uid=userCredential.user.uid;
+        db.collection('users').doc(uid).set({email:email,created:Date.now()}).catch(e=>console.error(e));
+      }).catch(err=>el('auth-msg').innerText=err.message);
     }
-  }
-
-  function reloadOnce() {
-    if (hwUnsubscribe) { hwUnsubscribe(); hwUnsubscribe = null; }
-    subscribeHomeworks();
-  }
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  }
-</script>
-
+    function login(){
+      el('auth-msg').innerText='';
+      const email=el('email').value.trim();
+      const password=el('password').value;
+      if(!email||!password){el('auth-msg').innerText='Электрондық пошта мен құпия сөзді енгізіңіз.';return}
+      auth.signInWithEmailAndPassword(email,password).catch(err=>el('auth-msg').innerText=err.message);
+    }
+    function logout(){auth.signOut()}
+    async function checkAdmin(uid){
+      try{
+        const doc=await db.collection('admins').doc(uid).get();
+        return doc.exists&&doc.data().isAdmin===true;
+      }catch(e){console.error(e);return false}
+    }
+    function subscribeHomeworks(){
+      if(hwUnsubscribe){hwUnsubscribe();hwUnsubscribe=null}
+      hwUnsubscribe=db.collection('homework').orderBy('createdAt','desc').onSnapshot(snapshot=>{renderHomeworks(snapshot)},err=>{console.error("SNAPSHOT ERR",err)});
+    }
+    function renderHomeworks(snapshot){
+      const list=el('homework-list');
+      list.innerHTML='';
+      snapshot.forEach(doc=>{
+        const d=doc.data();
+        const div=document.createElement('div');
+        div.className='homework';
+        const authorEmail=d.authorEmail?String(d.authorEmail):'';
+        div.innerHTML=`
+      <div class="meta">
+        <div class="meta-left" style="min-width:0">
+          <strong>${escapeHtml(d.title||'Атауы жоқ')}</strong>
+          <div class="small">${escapeHtml(d.subject||'')}</div>
+        </div>
+        <div class="meta-right small">
+          <div>${escapeHtml(d.deadline||'')}</div>
+          <div style="margin-top:4px;">
+            <span class="hw-author" title="${escapeHtml(authorEmail)}">${escapeHtml(authorEmail||'admin')}</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:8px">${escapeHtml(d.description||'')}</div>
+    `;
+        list.appendChild(div);
+      });
+      if(snapshot.size===0)list.innerHTML='<div class="small" style="text-align:center;color:#888">Әзірге үй жұмысы жоқ.</div>';
+    }
+    async function addHomework(){
+      if(!currentUser)return alert('Алдымен, өз аккаунтыңызға кіріңіз');
+      if(!currentIsAdmin)return alert('Тек админ ғана қоса алады (Мирастан сұраңыз).');
+      const title=el('hw-title').value.trim();
+      const desc=el('hw-desc').value.trim();
+      const deadline=el('hw-deadline').value||'';
+      const subject=el('hw-subject').value||'';
+      if(!title){el('add-msg').innerText='Тақырыпты енгізіңіз.';return}
+      el('add-msg').innerText='Сақтап жатырмын...';
+      try{
+        await db.collection('homework').add({title,description:desc,deadline,subject,authorUid:currentUser.uid,authorEmail:currentUser.email||'',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+        el('add-msg').innerText='Қосылды!';
+        el('hw-title').value='';el('hw-desc').value='';el('hw-deadline').value='';el('hw-subject').value='';
+        setTimeout(()=>el('add-msg').innerText='',2000);
+      }catch(e){console.error(e);el('add-msg').innerText='Қосу кезінде қате.'}
+    }
+    function reloadOnce(){if(hwUnsubscribe){hwUnsubscribe();hwUnsubscribe=null}subscribeHomeworks()}
+    function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+  </script>
 </body>
 </html>
