@@ -1,230 +1,225 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="kz">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Homework Helper — Beta test!</title>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <title>Үй тапсырмалары — Homework Helper</title>
+  <meta name="description" content="Үй тапсырмаларын басқару — қарапайым және қауіпсіз" />
   <style>
-    :root{--bg:#f6f8fb;--card:#ffffff;--muted:#666;--primary:#2563eb;--border:#e2e8f0;--shadow:0 4px 18px rgba(0,0,0,0.06);--radius:8px;--max-w:900px}
-    html,body{height:100%;margin:0}
-    body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:#222;padding:20px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-size:16px;line-height:1.45}
-    .container{max-width:var(--max-w);margin:0 auto;background:var(--card);padding:20px;border-radius:var(--radius);box-shadow:var(--shadow)}
-    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
-    .row{display:flex;gap:12px;align-items:center}
-    h1{margin:0;font-size:20px}
-    h3{margin:6px 0 0 0;font-size:18px}
-    h4{margin:6px 0 8px 0;font-size:16px}
-    input,textarea,select{width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);box-sizing:border-box;font-size:15px;background:#fff}
-    textarea{resize:vertical;min-height:80px}
-    button{padding:9px 14px;border-radius:6px;border:0;background:var(--primary);color:white;cursor:pointer;font-size:15px}
-    button.ghost{background:transparent;color:#333;border:1px solid #ddd}
-    .homework{border:1px solid #eee;padding:12px;border-radius:8px;margin-bottom:10px;background:#fff}
-    .admin-tag{display:inline-block;background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:8px;font-size:12px}
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --primary:#0b61c3;
+      --accent:#0763b8;
+      --success:#16a34a;
+      --danger:#ef4444;
+      --border:rgba(15,23,42,0.06);
+      --radius:12px;
+      --max-w:1100px;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#eef5ff);color:#0f172a}
+    .wrap{max-width:var(--max-w);margin:28px auto;padding:22px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,0.95),var(--card));box-shadow:0 8px 30px rgba(11,97,195,0.06)}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:12px}
+    #logo-img{width:56px;height:56px;border-radius:10px;object-fit:cover;display:block}
+    h1{margin:0;font-size:18px}
+    .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .btn{padding:10px 14px;border-radius:10px;border:0;background:var(--primary);color:#fff;font-weight:600;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--primary);border:1px solid rgba(11,97,195,0.12)}
     .small{font-size:13px;color:var(--muted)}
+    .main{display:flex;gap:16px;margin-top:20px}
+    .sidebar{background:var(--card);border-radius:12px;padding:14px;border:1px solid var(--border);box-shadow:0 6px 16px rgba(2,6,23,0.03);flex:0 0 320px}
+    .search{display:flex;gap:8px;flex-direction:column}
+    input.search-input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06)}
+    select.filter{padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06)}
+    .subject-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .subject-item{padding:8px 10px;border-radius:8px;font-size:14px;cursor:pointer;border:1px solid transparent}
+    .subject-item.active{background:linear-gradient(90deg,rgba(11,97,195,0.06),rgba(11,97,195,0.03));border-color:rgba(11,97,195,0.08);color:var(--accent)}
+    .content{flex:1}
+    .content-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .card{background:var(--card);border-radius:12px;padding:14px;border:1px solid var(--border);box-shadow:0 6px 14px rgba(2,6,23,0.02)}
+    .add-form{display:flex;flex-direction:column;gap:10px}
+    input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06);font-size:14px}
+    textarea{min-height:90px;resize:vertical}
+    .hw-list{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+    .hw{padding:12px;border-radius:10px;border:1px solid rgba(11,97,195,0.04);background:linear-gradient(180deg,rgba(248,252,255,0.8),#fff)}
+    .hw .title{font-weight:700}
+    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:12px;flex-wrap:wrap}
+    .meta > div{min-width:0}
+    .meta .right{display:flex;flex-direction:column;align-items:flex-end}
+    .tag{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(11,97,195,0.08);color:var(--accent);margin-bottom:4px}
+    .hw .desc{margin-top:8px;color:var(--muted);font-size:14px}
+    .hw .author{font-size:13px;color:var(--muted)}
+    .auth-card{max-width:520px;margin:30px auto;padding:18px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid var(--border)}
     .hidden{display:none}
-    #add-form{border:1px dashed #e6eefc;padding:12px;border-radius:8px;background:linear-gradient(180deg,rgba(246,248,251,0.6),rgba(255,255,255,0.6))}
-    .flex-between{display:flex;justify-content:space-between;align-items:center;gap:8px}
-    .mt-8{margin-top:8px}
-    .mt-12{margin-top:12px}
-    @media (max-width:1024px){
-      :root{--max-w:720px}
-      .row{flex-direction:column;align-items:stretch;gap:10px}
-      .topbar{flex-direction:column;align-items:flex-start;gap:8px}
-      .flex-between{flex-direction:column;align-items:flex-start;gap:8px}
-      input,textarea,select,button{font-size:15px;padding:10px}
-      h1{font-size:18px}
-      h3{font-size:16px}
+    @media (max-width:900px){
+      .main{flex-direction:column}
+      .sidebar{order:2;flex:0 0 auto}
+      .content{order:1}
     }
-    @media (max-width:768px){
-      body{padding:12px;font-size:15px}
-      .container{padding:12px;border-radius:10px}
-      :root{--max-w:100%}
-      h1{font-size:18px}
-      h3{font-size:15px}
-      h4{font-size:14px}
-      input,textarea,select,button{font-size:14px;padding:8px 10px}
-      button{width:100%;box-sizing:border-box}
-      #auth-section>div>div{display:flex;flex-direction:column;gap:8px}
-      #auth-section .row,.row{gap:8px}
-      #add-form>div[style]{display:flex;flex-direction:column;gap:8px}
-      #add-form .mt-12{margin-top:8px}
-      .homework{padding:10px}
-      .admin-tag{padding:3px 6px;font-size:11px}
-      .small{font-size:12px}
+    @media (max-width:480px){
+      input.search-input{padding:14px;font-size:16px}
+      .top-actions{gap:6px}
+      .meta{flex-direction:column;align-items:flex-start}
+      .meta .right{align-items:flex-start}
+      .hw{padding:10px}
+      #logo-img{width:48px;height:48px}
     }
-    .email-truncate{display:inline-block;max-width:36%;min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;cursor:default}
-    @media (max-width:768px){.email-truncate{max-width:55%;font-size:14px}}
-    @media (max-width:420px){body{font-size:14px}h1{font-size:17px}.container{padding:10px}input,textarea,select{padding:8px}button{padding:8px}}
-    .homework .meta{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:nowrap}
-    .homework .meta-left{flex:1 1 0;min-width:0}
-    .homework .meta-right{flex:0 0 auto;width:clamp(120px,30%,260px);max-width:40%;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .homework .hw-author{display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
-    .email-truncate{display:inline-block;max-width:clamp(100px,36%,320px);min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    @media (max-width:680px){.homework .meta{flex-wrap:wrap}.homework .meta-right{width:100%;max-width:100%;text-align:left;margin-top:6px}.email-truncate{max-width:55%}}
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <h1>Homework Helper - Beta version</h1>
-      <div>
-        <span id="user-email" class="small email-truncate" title=""></span>
-        <button id="btn-logout" class="ghost hidden" onclick="logout()">Шығу</button>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <img id="logo-img" src="./image-removebg-preview (1).png" alt="logo">
+        <div>
+          <h1>Үй тапсырмалары</h1>
+          <div class="small">Қарапайым және ыңғайлы</div>
+        </div>
       </div>
-    </div>
-    <hr>
-    <div id="auth-section">
-      <h3>Кіру немесе тіркелу</h3>
-      <div style="max-width:420px">
+      <div class="top-actions">
+        <div class="small" id="user-email"></div>
+        <button id="btn-logout" class="btn ghost hidden" onclick="logout()">Шығу</button>
+        <button id="btn-show-auth" class="btn" onclick="showAuth()">Кіру / Тіркелу</button>
+      </div>
+    </header>
+
+    <main id="app" class="main hidden">
+      <aside class="sidebar card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small">Іздеу</div>
+            <div class="small">Тақырып, пән бойынша іздеңіз</div>
+          </div>
+          <button class="btn ghost" onclick="clearFilters()">Тазалау</button>
+        </div>
+        <div class="search" style="margin-top:10px">
+          <input id="search" class="search-input" placeholder="Іздеу..." oninput="renderFilters()" />
+          <select id="sort" class="filter" onchange="renderFilters()">
+            <option value="new">Жаңадан — ескіге</option>
+            <option value="old">Ескідан — жаңға</option>
+            <option value="deadline">Срок бойынша</option>
+          </select>
+        </div>
+
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+          <div class="small">Пәндер</div>
+          <div id="subject-list" class="subject-list"></div>
+        </div>
+
+        <div style="margin-top:14px" class="small">Тек админ жаңа тапсырма қоса алады.</div>
+      </aside>
+
+      <section class="content">
+        <div class="content-header">
+          <div>
+            <h3 style="margin:0">Үй жұмыстары</h3>
+            <div class="small">Барлығы — <span id="count">0</span></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn ghost" onclick="reloadOnce()">Жаңарту</button>
+            <button class="btn hidden" id="open-add" onclick="toggleAdd()">Үй жұмысын қосу</button>
+          </div>
+        </div>
+
+        <div id="add-card" class="card hidden" style="margin-top:12px">
+          <form class="add-form" onsubmit="event.preventDefault();addHomework();">
+            <input id="hw-title" placeholder="Тақырып" />
+            <select id="hw-subject">
+              <option value="">Пән</option>
+              <option>Ағылшын тілі</option>
+              <option>Биология</option>
+              <option>География</option>
+              <option>Дүниежүзі тарихы</option>
+              <option>Информатика</option>
+              <option>Қазақ тілі мен әдебиеті</option>
+              <option>Математика</option>
+              <option>Физика</option>
+              <option>Химия</option>
+            </select>
+            <input id="hw-deadline" type="date" />
+            <textarea id="hw-desc" placeholder="Сипаттама"></textarea>
+            <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+              <div id="add-msg" class="small" style="align-self:center;color:var(--success)"></div>
+              <button class="btn ghost" type="button" onclick="toggleAdd()">Болдырмау</button>
+              <button class="btn" type="submit">Қосу</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="homework-list" class="hw-list"></div>
+      </section>
+    </main>
+
+    <div id="auth" class="auth-card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <h3 style="margin:0">Кіру немесе тіркелу</h3>
+          <div class="small">Email және құпия сөз арқылы</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
         <input id="email" type="email" placeholder="Email" />
         <input id="password" type="password" placeholder="Құпиясөз (≥6)" />
-        <div style="margin-top:8px">
-          <button onclick="login()">Кіру</button>
-          <button onclick="register()" class="ghost">Тіркелу</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" onclick="login()">Кіру</button>
+          <button class="btn ghost" onclick="register()">Тіркелу</button>
         </div>
-        <p class="small">Егер сізде аккаунт бар болса, <strong>email мен парольді енгізіп — «Кіру» батырмасын басыңыз</strong> және үй тапсырмалары бар басты бетке өте аласыз. Егер аккаунтыңыз әлі болмаса, кіріс бетінде email-іңді енгізіп, құпиясөзді енгізіп, <strong>«Тіркелу» батырмасын басыңыз</strong>.</p>
+        <div id="auth-msg" class="small" style="color:var(--danger)"></div>
       </div>
-      <div id="auth-msg" class="small" style="color:red"></div>
     </div>
-    <div id="app-section" class="hidden">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3>Үй жұмыстар <span id="admin-indicator" class="admin-tag hidden">Admin</span></h3>
-        <div><button onclick="reloadOnce()">Жаңарту</button></div>
-      </div>
-      <div id="add-form" class="hidden" style="margin:12px 0;border:1px dashed #e6eefc;padding:12px;border-radius:8px">
-        <h4>Үй жұмысын қосу</h4>
-        <input id="hw-title" placeholder="Тақырып (пән және қысқаша сипаттама)" />
-        <textarea id="hw-desc" placeholder="Сипаттама (басқа мәліметтер)" style="height:80px"></textarea>
-        <div style="display:flex;gap:10px">
-          <input id="hw-deadline" type="date" />
-          <select id="hw-subject">
-            <option value="">Пән</option>
-            <option>Ағылшын тілі</option>
-            <option>Биология</option>
-            <option>География</option>
-            <option>Дүниежүзі тарихы</option>
-            <option>Информатика</option>
-            <option>Қазақ тілі мен әдебиеті</option>
-            <option>Қазақстан тарихы</option>
-            <option>Құқық Негіздері</option>
-            <option>Математика</option>
-            <option>Орыс тілі мен әдебиеті</option>
-            <option>Физика</option>
-            <option>Химия</option>
-          </select>
-          <button onclick="addHomework()">Қосу</button>
-        </div>
-        <div id="add-msg" class="small" style="color:green;margin-top:8px"></div>
-      </div>
-      <div id="homework-list" style="margin-top:12px"></div>
-    </div>
+
   </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
     const firebaseConfig={apiKey:"AIzaSyAqwhaz_726NPUVhtmDI8W6Xuo4GCQNUWM",authDomain:"hw-helper-b47ca.firebaseapp.com",projectId:"hw-helper-b47ca",storageBucket:"hw-helper-b47ca.firebasestorage.app",messagingSenderId:"939392073070",appId:"1:939392073070:web:7d0a4508459ea9e586557f",measurementId:"G-2EVV90NXFS"};
     firebase.initializeApp(firebaseConfig);
     const auth=firebase.auth();
     const db=firebase.firestore();
-    let currentUser=null;
-    let currentIsAdmin=false;
-    let hwUnsubscribe=null;
     const el=id=>document.getElementById(id);
+    let currentUser=null; let currentIsAdmin=false; let hwUnsubscribe=null; let lastSnapshot=[];
+    const subjects=["Ағылшын тілі","Биология","География","Дүниежүзі тарихы","Информатика","Қазақ тілі мен әдебиеті","Математика","Физика","Химия"];
+    function renderSubjectList(){
+      const node=el('subject-list'); node.innerHTML='';
+      const all=document.createElement('div'); all.className='subject-item active'; all.innerText='Барлығы'; all.onclick=()=>{document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active'));all.classList.add('active');renderFilters()}; node.appendChild(all);
+      subjects.forEach(s=>{const d=document.createElement('div');d.className='subject-item';d.innerText=s;d.onclick=()=>{document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active'));d.classList.add('active');el('search').value='';renderFilters()};node.appendChild(d)})
+    }
+    renderSubjectList();
     auth.onAuthStateChanged(async user=>{
       currentUser=user;
-      if(user){
-        el('user-email').innerText=user.email||user.uid;
-        el('user-email').title=user.email||user.uid;
-        el('btn-logout').classList.remove('hidden');
-        el('auth-section').classList.add('hidden');
-        el('app-section').classList.remove('hidden');
-        currentIsAdmin=await checkAdmin(user.uid);
-        if(currentIsAdmin){el('admin-indicator').classList.remove('hidden');el('add-form').classList.remove('hidden')}else{el('admin-indicator').classList.add('hidden');el('add-form').classList.add('hidden')}
-        subscribeHomeworks();
-      }else{
-        currentIsAdmin=false;
-        el('user-email').innerText='';
-        el('user-email').title='';
-        el('btn-logout').classList.add('hidden');
-        el('auth-section').classList.remove('hidden');
-        el('app-section').classList.add('hidden');
-        if(hwUnsubscribe){hwUnsubscribe();hwUnsubscribe=null}
-      }
+      if(user){el('auth').classList.add('hidden');el('app').classList.remove('hidden');el('user-email').innerText=user.email||user.uid;el('btn-show-auth').classList.add('hidden');el('btn-logout').classList.remove('hidden');currentIsAdmin=await checkAdmin(user.uid);if(currentIsAdmin){el('open-add').classList.remove('hidden')}else{el('open-add').classList.add('hidden')}subscribeHomeworks();}else{el('auth').classList.remove('hidden');el('app').classList.add('hidden');el('user-email').innerText='';el('btn-show-auth').classList.remove('hidden');el('btn-logout').classList.add('hidden');if(hwUnsubscribe){hwUnsubscribe();hwUnsubscribe=null}subscribeHomeworks();}
     });
-    function register(){
-      el('auth-msg').innerText='';
-      const email=el('email').value.trim();
-      const password=el('password').value;
-      if(!email||password.length<6){el('auth-msg').innerText='Электрондық пошта мен құпия сөзді енгізіңіз (≥6 таңба).';return}
-      auth.createUserWithEmailAndPassword(email,password).then(userCredential=>{
-        const uid=userCredential.user.uid;
-        db.collection('users').doc(uid).set({email:email,created:Date.now()}).catch(e=>console.error(e));
-      }).catch(err=>el('auth-msg').innerText=err.message);
+    async function checkAdmin(uid){try{const doc=await db.collection('admins').doc(uid).get();return doc.exists&&doc.data().isAdmin===true}catch(e){console.error(e);return false}}
+    function subscribeHomeworks(){ if(hwUnsubscribe){hwUnsubscribe();hwUnsubscribe=null} hwUnsubscribe=db.collection('homework').orderBy('createdAt','desc').onSnapshot(snap=>{lastSnapshot=snap.docs.map(d=>({id:d.id,...d.data()}));renderFilters()},err=>console.error(err)); }
+    function formatDate(v){ if(!v) return ''; try{const d=new Date(v); if(isNaN(d)) return v; return d.toLocaleDateString();}catch(e){return v} }
+    function escapeHtml(s){return String(s||'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+    function renderFilters(){
+      const q=el('search').value.trim().toLowerCase(); const activeSub=document.querySelector('.subject-item.active')?.innerText||'Барлығы'; const sort=el('sort').value;
+      let items=lastSnapshot.slice();
+      if(activeSub && activeSub!=='Барлығы') items=items.filter(x=>String(x.subject||'').toLowerCase()===activeSub.toLowerCase());
+      if(q) items=items.filter(x=>((x.title||'')+" "+(x.description||'')+" "+(x.authorEmail||'')).toLowerCase().includes(q));
+      if(sort==='deadline') items.sort((a,b)=>{ if(!a.deadline) return 1; if(!b.deadline) return -1; return new Date(a.deadline)-new Date(b.deadline)});
+      else if(sort==='old') items.reverse();
+      el('count').innerText=items.length;
+      const list=el('homework-list'); list.innerHTML='';
+      if(items.length===0){list.innerHTML='<div class="small" style="grid-column:1/-1;text-align:center;color:#718096">Әзірге тапсырма жоқ.</div>';return}
+      items.forEach(d=>{const card=document.createElement('div');card.className='hw';card.innerHTML=`<div class="title">${escapeHtml(d.title||'Атауы жоқ')}</div><div class="desc">${escapeHtml(d.description||'')}</div><div class="meta"><div><span class="tag">${escapeHtml(d.subject||'Жалпы')}</span></div><div class="right"><div class="small">${escapeHtml(formatDate(d.deadline||d.createdAt?.toDate?.()?.toISOString?.()||''))}</div><div class="author">${escapeHtml(d.authorEmail||'admin')}</div></div></div>`; list.appendChild(card)})
     }
-    function login(){
-      el('auth-msg').innerText='';
-      const email=el('email').value.trim();
-      const password=el('password').value;
-      if(!email||!password){el('auth-msg').innerText='Электрондық пошта мен құпия сөзді енгізіңіз.';return}
-      auth.signInWithEmailAndPassword(email,password).catch(err=>el('auth-msg').innerText=err.message);
-    }
+    async function register(){ el('auth-msg').innerText=''; const email=el('email').value.trim(); const password=el('password').value; if(!email||password.length<6){el('auth-msg').innerText='Email мен 6 таңбадан кем емес пароль енгізіңіз.';return} try{const uc=await auth.createUserWithEmailAndPassword(email,password); await db.collection('users').doc(uc.user.uid).set({email:email,created:Date.now()});}catch(err){el('auth-msg').innerText=err.message}}
+    async function login(){ el('auth-msg').innerText=''; const email=el('email').value.trim(); const password=el('password').value; if(!email||!password){el('auth-msg').innerText='Email мен құпия сөзді енгізіңіз.';return} try{await auth.signInWithEmailAndPassword(email,password);}catch(err){el('auth-msg').innerText=err.message}}
     function logout(){auth.signOut()}
-    async function checkAdmin(uid){
-      try{
-        const doc=await db.collection('admins').doc(uid).get();
-        return doc.exists&&doc.data().isAdmin===true;
-      }catch(e){console.error(e);return false}
-    }
-    function subscribeHomeworks(){
-      if(hwUnsubscribe){hwUnsubscribe();hwUnsubscribe=null}
-      hwUnsubscribe=db.collection('homework').orderBy('createdAt','desc').onSnapshot(snapshot=>{renderHomeworks(snapshot)},err=>{console.error("SNAPSHOT ERR",err)});
-    }
-    function renderHomeworks(snapshot){
-      const list=el('homework-list');
-      list.innerHTML='';
-      snapshot.forEach(doc=>{
-        const d=doc.data();
-        const div=document.createElement('div');
-        div.className='homework';
-        const authorEmail=d.authorEmail?String(d.authorEmail):'';
-        div.innerHTML=`
-      <div class="meta">
-        <div class="meta-left" style="min-width:0">
-          <strong>${escapeHtml(d.title||'Атауы жоқ')}</strong>
-          <div class="small">${escapeHtml(d.subject||'')}</div>
-        </div>
-        <div class="meta-right small">
-          <div>${escapeHtml(d.deadline||'')}</div>
-          <div style="margin-top:4px;">
-            <span class="hw-author" title="${escapeHtml(authorEmail)}">${escapeHtml(authorEmail||'admin')}</span>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top:8px">${escapeHtml(d.description||'')}</div>
-    `;
-        list.appendChild(div);
-      });
-      if(snapshot.size===0)list.innerHTML='<div class="small" style="text-align:center;color:#888">Әзірге үй жұмысы жоқ.</div>';
-    }
-    async function addHomework(){
-      if(!currentUser)return alert('Алдымен, өз аккаунтыңызға кіріңіз');
-      if(!currentIsAdmin)return alert('Тек админ ғана қоса алады (Мирастан сұраңыз).');
-      const title=el('hw-title').value.trim();
-      const desc=el('hw-desc').value.trim();
-      const deadline=el('hw-deadline').value||'';
-      const subject=el('hw-subject').value||'';
-      if(!title){el('add-msg').innerText='Тақырыпты енгізіңіз.';return}
-      el('add-msg').innerText='Сақтап жатырмын...';
-      try{
-        await db.collection('homework').add({title,description:desc,deadline,subject,authorUid:currentUser.uid,authorEmail:currentUser.email||'',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-        el('add-msg').innerText='Қосылды!';
-        el('hw-title').value='';el('hw-desc').value='';el('hw-deadline').value='';el('hw-subject').value='';
-        setTimeout(()=>el('add-msg').innerText='',2000);
-      }catch(e){console.error(e);el('add-msg').innerText='Қосу кезінде қате.'}
-    }
-    function reloadOnce(){if(hwUnsubscribe){hwUnsubscribe();hwUnsubscribe=null}subscribeHomeworks()}
-    function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+    async function addHomework(){ if(!currentUser){alert('Кіру қажет');return} if(!currentIsAdmin){alert('Тек әкімші қоса алады');return} const title=el('hw-title').value.trim(); const desc=el('hw-desc').value.trim(); const deadline=el('hw-deadline').value||''; const subject=el('hw-subject').value||''; if(!title){el('add-msg').innerText='Тақырыпты енгізіңіз.';return} el('add-msg').innerText='Сақталып жатыр...'; try{await db.collection('homework').add({title,description:desc,deadline,subject,authorUid:currentUser.uid,authorEmail:currentUser.email||'',createdAt:firebase.firestore.FieldValue.serverTimestamp()}); el('add-msg').innerText='Қосылды!'; el('hw-title').value=''; el('hw-desc').value=''; el('hw-deadline').value=''; setTimeout(()=>el('add-msg').innerText='',1500);}catch(e){console.error(e);el('add-msg').innerText='Қате'} }
+    function reloadOnce(){ if(hwUnsubscribe){hwUnsubscribe();hwUnsubscribe=null} subscribeHomeworks() }
+    function toggleAdd(){ el('add-card').classList.toggle('hidden') }
+    function clearFilters(){ el('search').value=''; document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active')); document.querySelector('.subject-item').classList.add('active'); el('sort').value='new'; renderFilters() }
+    function showAuth(){ el('auth').scrollIntoView({behavior:'smooth'}) }
+    subscribeHomeworks();
   </script>
 </body>
 </html>
