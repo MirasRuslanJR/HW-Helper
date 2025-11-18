@@ -136,6 +136,9 @@
               <option>Дүниежүзі тарихы</option>
               <option>Информатика</option>
               <option>Қазақ тілі мен әдебиеті</option>
+              <option>Қазақстан тарихы</option>
+              <option>Құқық негіздері</option>
+              <option>Орыс тілі мен әдебиеті</option>
               <option>Математика</option>
               <option>Физика</option>
               <option>Химия</option>
@@ -184,7 +187,7 @@
     const db=firebase.firestore();
     const el=id=>document.getElementById(id);
     let currentUser=null; let currentIsAdmin=false; let hwUnsubscribe=null; let lastSnapshot=[];
-    const subjects=["Ағылшын тілі","Биология","География","Дүниежүзі тарихы","Информатика","Қазақ тілі мен әдебиеті","Математика","Физика","Химия"];
+    const subjects=["Ағылшын тілі","Биология","География","Дүниежүзі тарихы","Информатика","Қазақ тілі мен әдебиеті","Қазақстан тарихы","Құқық негіздері","Математика","Орыс тілі мен әдебиеті","Физика","Химия"];
     function renderSubjectList(){
       const node=el('subject-list'); node.innerHTML='';
       const all=document.createElement('div'); all.className='subject-item active'; all.innerText='Барлығы'; all.onclick=()=>{document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active'));all.classList.add('active');renderFilters()}; node.appendChild(all);
