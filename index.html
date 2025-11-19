@@ -92,7 +92,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div>
             <div class="small">Іздеу</div>
-            <div class="small">Тақырып, пән бойынша іздеңіз</div>
+            <div class="small">Тақырып, пән және дедлайнның күні бойынша іздеңіз</div>
           </div>
           <button class="btn ghost" onclick="clearFilters()">Тазалау</button>
         </div>
@@ -203,17 +203,117 @@
     function formatDate(v){ if(!v) return ''; try{const d=new Date(v); if(isNaN(d)) return v; return d.toLocaleDateString();}catch(e){return v} }
     function escapeHtml(s){return String(s||'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
     function renderFilters(){
-      const q=el('search').value.trim().toLowerCase(); const activeSub=document.querySelector('.subject-item.active')?.innerText||'Барлығы'; const sort=el('sort').value;
-      let items=lastSnapshot.slice();
-      if(activeSub && activeSub!=='Барлығы') items=items.filter(x=>String(x.subject||'').toLowerCase()===activeSub.toLowerCase());
-      if(q) items=items.filter(x=>((x.title||'')+" "+(x.description||'')+" "+(x.authorEmail||'')).toLowerCase().includes(q));
-      if(sort==='deadline') items.sort((a,b)=>{ if(!a.deadline) return 1; if(!b.deadline) return -1; return new Date(a.deadline)-new Date(b.deadline)});
-      else if(sort==='old') items.reverse();
-      el('count').innerText=items.length;
-      const list=el('homework-list'); list.innerHTML='';
-      if(items.length===0){list.innerHTML='<div class="small" style="grid-column:1/-1;text-align:center;color:#718096">Әзірге тапсырма жоқ.</div>';return}
-      items.forEach(d=>{const card=document.createElement('div');card.className='hw';card.innerHTML=`<div class="title">${escapeHtml(d.title||'Атауы жоқ')}</div><div class="desc">${escapeHtml(d.description||'')}</div><div class="meta"><div><span class="tag">${escapeHtml(d.subject||'Жалпы')}</span></div><div class="right"><div class="small">${escapeHtml(formatDate(d.deadline||d.createdAt?.toDate?.()?.toISOString?.()||''))}</div><div class="author">${escapeHtml(d.authorEmail||'admin')}</div></div></div>`; list.appendChild(card)})
+  const raw = el('search').value.trim();
+  const q = raw.toLowerCase();
+  const activeSub = document.querySelector('.subject-item.active')?.innerText || 'Барлығы';
+  const sort = el('sort').value;
+  let items = lastSnapshot.slice();
+
+  // фильтр по предмету
+  if(activeSub && activeSub !== 'Барлығы') {
+    items = items.filter(x => String(x.subject || '').toLowerCase() === activeSub.toLowerCase());
+  }
+
+  // если в поле поиска введена только дата (DD-MM-YYYY, DD.MM.YYYY, DD/MM/YYYY), то фильтруем по дедлайну <= заданной даты
+  const dateMatch = raw.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})$/);
+  if(dateMatch){
+    let day = Number(dateMatch[1]);
+    let month = Number(dateMatch[2]);
+    let year = Number(dateMatch[3]);
+    if(year < 100) year += 2000; // поддержка двухзначного года, например 25 -> 2025
+    // целевая дата — до конца дня (включительно)
+    const target = new Date(year, month - 1, day, 23, 59, 59, 999);
+
+    items = items.filter(x => {
+      if(!x.deadline) return false;
+      // дедлайн в БД может быть в разных форматах: yyyy-mm-dd или timestamp-string.
+      const d = new Date(x.deadline);
+      if(!d || isNaN(d)) {
+        // если хранится firestore Timestamp (объект) — пробуем привести
+        try {
+          if(x.deadline && typeof x.deadline.toDate === 'function') {
+            const td = x.deadline.toDate();
+            if(!isNaN(td)) return td <= target;
+          }
+        } catch(e) {}
+        return false;
+      }
+      return d <= target;
+    });
+
+    // применим сортировку (если нужно)
+    if(sort === 'deadline'){
+      items.sort((a,b) => {
+        const da = a.deadline ? new Date(a.deadline) : new Date(8640000000000000);
+        const db = b.deadline ? new Date(b.deadline) : new Date(8640000000000000);
+        return da - db;
+      });
+    } else if(sort === 'old'){
+      items.reverse();
     }
+
+    // отрисовка и выход — не применяем текстовый поиск, т.к. пользователь ввёл дату
+    el('count').innerText = items.length;
+    const list = el('homework-list'); list.innerHTML = '';
+    if(items.length === 0){
+      list.innerHTML = '<div class="small" style="grid-column:1/-1;text-align:center;color:#718096">Әзірге тапсырма жоқ.</div>';
+      return;
+    }
+    items.forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'hw';
+      card.innerHTML = `<div class="title">${escapeHtml(d.title||'Атауы жоқ')}</div>
+        <div class="desc">${escapeHtml(d.description||'')}</div>
+        <div class="meta">
+          <div><span class="tag">${escapeHtml(d.subject||'Жалпы')}</span></div>
+          <div class="right">
+            <div class="small">${escapeHtml(formatDate(d.deadline||d.createdAt?.toDate?.()?.toISOString?.()||''))}</div>
+            <div class="author">${escapeHtml(d.authorEmail||'admin')}</div>
+          </div>
+        </div>`;
+      list.appendChild(card);
+    });
+    return;
+  }
+
+  // Обычный текстовый поиск (по title, description, author)
+  if(q) {
+    items = items.filter(x => (((x.title||'') + " " + (x.description||'') + " " + (x.authorEmail||'')).toLowerCase().includes(q)));
+  }
+
+  // сортировка
+  if(sort === 'deadline') {
+    items.sort((a,b) => {
+      if(!a.deadline) return 1;
+      if(!b.deadline) return -1;
+      return new Date(a.deadline) - new Date(b.deadline);
+    });
+  } else if(sort === 'old') {
+    items.reverse();
+  }
+
+  // отрисовка
+  el('count').innerText = items.length;
+  const list = el('homework-list'); list.innerHTML = '';
+  if(items.length === 0){
+    list.innerHTML = '<div class="small" style="grid-column:1/-1;text-align:center;color:#718096">Әзірге тапсырма жоқ.</div>';
+    return;
+  }
+  items.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'hw';
+    card.innerHTML = `<div class="title">${escapeHtml(d.title||'Атауы жоқ')}</div>
+      <div class="desc">${escapeHtml(d.description||'')}</div>
+      <div class="meta">
+        <div><span class="tag">${escapeHtml(d.subject||'Жалпы')}</span></div>
+        <div class="right">
+          <div class="small">${escapeHtml(formatDate(d.deadline||d.createdAt?.toDate?.()?.toISOString?.()||''))}</div>
+          <div class="author">${escapeHtml(d.authorEmail||'admin')}</div>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
     async function register(){ el('auth-msg').innerText=''; const email=el('email').value.trim(); const password=el('password').value; if(!email||password.length<6){el('auth-msg').innerText='Email мен 6 таңбадан кем емес пароль енгізіңіз.';return} try{const uc=await auth.createUserWithEmailAndPassword(email,password); await db.collection('users').doc(uc.user.uid).set({email:email,created:Date.now()});}catch(err){el('auth-msg').innerText=err.message}}
     async function login(){ el('auth-msg').innerText=''; const email=el('email').value.trim(); const password=el('password').value; if(!email||!password){el('auth-msg').innerText='Email мен құпия сөзді енгізіңіз.';return} try{await auth.signInWithEmailAndPassword(email,password);}catch(err){el('auth-msg').innerText=err.message}}
     function logout(){auth.signOut()}
