@@ -91,7 +91,6 @@
         <button id="btn-show-auth" class="btn" onclick="showAuth()">Кіру / Тіркелу</button>
       </div>
     </header>
-
     <main id="app" class="main hidden">
       <aside class="sidebar card">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -110,21 +109,17 @@
           </select>
           <button id="btn-backfill" class="btn ghost hidden" onclick="startBackfill()">Backfill userStats</button>
         </div>
-
         <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
           <div class="small">Пәндер</div>
           <div id="subject-list" class="subject-list"></div>
         </div>
-
         <div class="leaderboard card" style="margin-top:12px;padding:10px">
           <div class="small">Рейтинг оқушылар</div>
           <div id="leaderboard-list" style="margin-top:8px"></div>
           <div class="small" style="margin-top:8px">*Ұпай тапсырманы орындаған сайын қосылады. Тапсырма жойылса, ұпай сақталады.</div>
         </div>
-
         <div style="margin-top:14px" class="small">Тек админ жаңа тапсырма қоса алады.</div>
       </aside>
-
       <section class="content">
         <div class="content-header">
           <div>
@@ -136,7 +131,6 @@
             <button class="btn hidden" id="open-add" onclick="toggleAdd()">Үй жұмысын қосу</button>
           </div>
         </div>
-
         <div id="add-card" class="card hidden" style="margin-top:12px">
           <form class="add-form" onsubmit="event.preventDefault();addHomework();">
             <input id="hw-title" placeholder="Тақырып" />
@@ -164,11 +158,9 @@
             </div>
           </form>
         </div>
-
         <div id="homework-list" class="hw-list"></div>
       </section>
     </main>
-
     <div id="auth" class="auth-card">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
@@ -186,14 +178,11 @@
         <div id="auth-msg" class="small" style="color:var(--danger)"></div>
       </div>
     </div>
-
   </div>
-
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // ---- Конфигурация Firebase (оставлена как в оригинале) ----
     const firebaseConfig={apiKey:"AIzaSyAqwhaz_726NPUVhtmDI8W6Xuo4GCQNUWM",authDomain:"hw-helper-b47ca.firebaseapp.com",projectId:"hw-helper-b47ca",storageBucket:"hw-helper-b47ca.firebasestorage.app",messagingSenderId:"939392073070",appId:"1:939392073070:web:7d0a4508459ea9e586557f",measurementId:"G-2EVV90NXFS"};
     firebase.initializeApp(firebaseConfig);
     const auth=firebase.auth();
@@ -202,11 +191,7 @@
     const el=id=>document.getElementById(id);
     let currentUser=null; let currentIsAdmin=false; let hwUnsubscribe=null; let lastSnapshot=[]; let completedMap={};
     const subjects=["Ағылшын тілі","Биология","География","Дүниежүзі тарихы","Информатика","Қазақ тілі мен әдебиеті","Қазақстан тарихы","Құқық негіздері","Математика","Орыс тілі мен әдебиеті","Физика","Химия"];
-
-    // Helper: escape HTML
     function escapeHtml(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-
-    // Robust date formatter supporting Firestore Timestamps and strings
     function formatDate(v){
       if(!v) return '';
       try{
@@ -216,14 +201,12 @@
         return d.toLocaleDateString();
       } catch(e){ return String(v); }
     }
-
     function renderSubjectList(){
       const node=el('subject-list'); node.innerHTML='';
       const all=document.createElement('div'); all.className='subject-item active'; all.innerText='Барлығы'; all.onclick=()=>{document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active'));all.classList.add('active');renderFilters()}; node.appendChild(all);
       subjects.forEach(s=>{const d=document.createElement('div');d.className='subject-item';d.innerText=s;d.onclick=()=>{document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active'));d.classList.add('active');el('search').value='';renderFilters()};node.appendChild(d)})
     }
     renderSubjectList();
-
     auth.onAuthStateChanged(async user=>{
       try{
         currentUser=user;
@@ -238,17 +221,13 @@
         } else {
           el('auth').classList.remove('hidden'); el('app').classList.add('hidden'); el('user-email').innerText=''; el('user-points').innerText=''; el('btn-show-auth').classList.remove('hidden'); el('btn-logout').classList.add('hidden');
           completedMap={};
-          // Keep a subscription for public homeworks view even when logged out
           subscribeHomeworks();
         }
       } catch(e){ console.error('onAuthStateChanged handler error', e); }
     });
-
     async function checkAdmin(uid){ try{ const doc = await db.collection('admins').doc(uid).get(); return doc.exists && doc.data().isAdmin === true }catch(e){console.error('checkAdmin',e);return false} }
-
     function subscribeHomeworks(){
       if(hwUnsubscribe){ hwUnsubscribe(); hwUnsubscribe = null; }
-      // Keep a live snapshot for homeworks
       try{
         hwUnsubscribe = db.collection('homework').orderBy('createdAt','desc').onSnapshot(snap=>{
           lastSnapshot = snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -256,14 +235,9 @@
         }, err=>{ console.error('homework onSnapshot error', err); });
       } catch(e){ console.error('subscribeHomeworks error', e); }
     }
-
     async function loadUserCompleted(uid){ completedMap={}; if(!uid) return; try{ const snap = await db.collection('userStats').doc(uid).collection('completed').get(); snap.forEach(d=>{ completedMap[d.id] = d.data(); }); }catch(e){ console.error('loadUserCompleted', e);} }
-
     async function ensureUserStats(uid){ if(!uid) return; const ref = db.collection('userStats').doc(uid); try{ const doc = await ref.get(); if(!doc.exists){ await ref.set({points:0,updated:firebase.firestore.FieldValue.serverTimestamp()}); } }catch(e){ console.error('ensureUserStats', e); } }
-
     async function renderUserPoints(uid){ if(!uid) return; try{ const doc = await db.collection('userStats').doc(uid).get(); const pts = doc.exists ? doc.data().points || 0 : 0; el('user-points').innerText = 'Ұпай: ' + pts; }catch(e){ console.error('renderUserPoints', e); } }
-
-    // Leaderboard now shows emails explicitly (as the user requested)
     async function renderLeaderboard(){
   try{
     const lb = await db.collection('userStats').orderBy('points','desc').limit(100).get(); // limit при желании
@@ -274,10 +248,8 @@
       const email = (data.email && String(data.email).trim()) || '';
       const display = email || (doc.id ? (doc.id.length > 8 ? doc.id.slice(0,6) + '...' : doc.id) : 'unknown');
       const pts = data.points || 0;
-
       const div = document.createElement('div');
       div.className = 'item';
-      // если email отсутствует — добавляем подсказку/класс
       const missingBadge = email ? '' : ' <span style="font-size:11px;color:#9ca3af;margin-left:8px">(no email)</span>';
       div.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><strong title="${escapeHtml(display)}">${escapeHtml(display)}</strong>${missingBadge}</div><div>${pts}</div>`;
       node.appendChild(div);
@@ -286,25 +258,20 @@
     console.error('renderLeaderboard error', e);
   }
 }
-
-
     function parseSearchDate(raw){
       const dateMatch = raw.match(/^\s*(\d{1,2})[.\-\/]?(\d{1,2})[.\-\/]?(\d{2,4})\s*$/);
       if(!dateMatch) return null;
       let day = Number(dateMatch[1]); let month = Number(dateMatch[2]); let year = Number(dateMatch[3]); if(year < 100) year += 2000; return new Date(year, month-1, day, 23,59,59,999);
     }
-
     function renderFilters(){
       const raw = el('search').value.trim();
       const q = raw.toLowerCase();
       const activeSub = document.querySelector('.subject-item.active')?.innerText || 'Барлығы';
       const sort = el('sort').value;
       let items = lastSnapshot.slice();
-
       if(activeSub && activeSub !== 'Барлығы'){
         items = items.filter(x => String(x.subject || '').toLowerCase() === activeSub.toLowerCase());
       }
-
       const parsedDate = parseSearchDate(raw);
       if(parsedDate){
         items = items.filter(x => {
@@ -315,19 +282,15 @@
             return d <= parsedDate;
           }catch(e){ return false; }
         });
-        // If sorting by deadline requested
         if(sort === 'deadline') items.sort((a,b)=>{ const da = (a.deadline && typeof a.deadline.toDate === 'function') ? a.deadline.toDate() : (a.deadline?new Date(a.deadline):new Date(8640000000000000)); const db = (b.deadline && typeof b.deadline.toDate === 'function') ? b.deadline.toDate() : (b.deadline?new Date(b.deadline):new Date(8640000000000000)); return da - db; });
         else if(sort === 'old') items.reverse();
-
         el('count').innerText = items.length;
         const list = el('homework-list'); list.innerHTML = '';
         if(items.length===0){ list.innerHTML = '<div class="small" style="text-align:center;color:#718096">Әзірге тапсырма жоқ.</div>'; return; }
         items.forEach(d=>{ const card=document.createElement('div'); card.className='hw'; card.innerHTML = `<div class="title">${escapeHtml(d.title||'Атауы жоқ')}</div><div class="desc">${escapeHtml(d.description||'')}</div><div class="meta"><div><span class="tag">${escapeHtml(d.subject||'Жалпы')}</span></div><div class="right"><div class="small">${escapeHtml(formatDate(d.deadline||d.createdAt||''))}</div><div class="author">${escapeHtml(d.authorEmail||'admin')}</div></div></div>`; const btn=makeCompleteButton(d.id,d); card.appendChild(btn); list.appendChild(card);});
         return;
       }
-
       if(q){ items = items.filter(x => (((x.title||'') + ' ' + (x.description||'') + ' ' + (x.authorEmail||'')).toLowerCase().includes(q))); }
-
       if(sort === 'deadline'){
         items.sort((a,b)=>{
           const da = (a.deadline && typeof a.deadline.toDate === 'function') ? a.deadline.toDate() : (a.deadline?new Date(a.deadline):new Date(8640000000000000));
@@ -335,20 +298,17 @@
           return da - db;
         });
       } else {
-        // sort by createdAt explicitly
         items.sort((a,b)=>{
           const da = (a.createdAt && typeof a.createdAt.toDate === 'function') ? a.createdAt.toDate() : (a.createdAt?new Date(a.createdAt):new Date(0));
           const db = (b.createdAt && typeof b.createdAt.toDate === 'function') ? b.createdAt.toDate() : (b.createdAt?new Date(b.createdAt):new Date(0));
-          return db - da; // default: new -> old
+          return db - da;
         });
         if(sort === 'old') items.reverse();
       }
-
       el('count').innerText = items.length; const list=el('homework-list'); list.innerHTML = '';
       if(items.length===0){ list.innerHTML = '<div class="small" style="text-align:center;color:#718096">Әзірге тапсырма жоқ.</div>'; return; }
       items.forEach(d=>{ const card=document.createElement('div'); card.className='hw'; card.innerHTML = `<div class="title">${escapeHtml(d.title||'Атауы жоқ')}</div><div class="desc">${escapeHtml(d.description||'')}</div><div class="meta"><div><span class="tag">${escapeHtml(d.subject||'Жалпы')}</span></div><div class="right"><div class="small">${escapeHtml(formatDate(d.deadline||d.createdAt||''))}</div><div class="author">${escapeHtml(d.authorEmail||'admin')}</div></div></div>`; const btn=makeCompleteButton(d.id,d); card.appendChild(btn); list.appendChild(card); });
     }
-
     function makeCompleteButton(hwId, hwData){
       const btn=document.createElement('button'); btn.className='complete-btn'; btn.type='button';
       const done = completedMap && completedMap[hwId];
@@ -377,25 +337,20 @@
       };
       return btn;
     }
-
     async function register(){ el('auth-msg').innerText=''; const email=el('email').value.trim(); const password=el('password').value; if(!email||password.length<6){el('auth-msg').innerText='Email мен 6 таңбадан кем емес пароль енгізіңіз.';return} try{ const uc = await auth.createUserWithEmailAndPassword(email,password); await db.collection('users').doc(uc.user.uid).set({email:email,created:Date.now()}); await db.collection('userStats').doc(uc.user.uid).set({points:0,email:email,displayName:email.split('@')[0]},{merge:true}); }catch(err){ console.error('register error', err); el('auth-msg').innerText = err.message }
     }
     async function login(){ el('auth-msg').innerText=''; const email=el('email').value.trim(); const password=el('password').value; if(!email||!password){el('auth-msg').innerText='Email мен құпия сөзді енгізіңіз.';return} try{ await auth.signInWithEmailAndPassword(email,password); }catch(err){ console.error('login error', err); el('auth-msg').innerText = err.message } }
     function logout(){ auth.signOut(); }
-
     async function addHomework(){ if(!currentUser){alert('Кіру қажет');return} if(!currentIsAdmin){alert('Тек әкімші қоса алады');return} const title=el('hw-title').value.trim(); const desc=el('hw-desc').value.trim(); const deadline=el('hw-deadline').value||''; const subject=el('hw-subject').value||''; if(!title){el('add-msg').innerText='Тақырыпты енгізіңіз.';return} el('add-msg').innerText='Сақталып жатыр...'; try{ await db.collection('homework').add({title,description:desc,deadline,subject,authorUid:currentUser.uid,authorEmail:currentUser.email||'',createdAt:firebase.firestore.FieldValue.serverTimestamp()}); el('add-msg').innerText='Қосылды!'; el('hw-title').value=''; el('hw-desc').value=''; el('hw-deadline').value=''; setTimeout(()=>el('add-msg').innerText='',1500); }catch(e){ console.error('addHomework error', e); el('add-msg').innerText='Қате' } }
-
     function reloadOnce(){ if(hwUnsubscribe){ hwUnsubscribe(); hwUnsubscribe=null } subscribeHomeworks(); }
     function toggleAdd(){ el('add-card').classList.toggle('hidden') }
     function clearFilters(){ el('search').value=''; document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active')); const first = document.querySelector('#subject-list .subject-item'); if(first) first.classList.add('active'); el('sort').value='new'; renderFilters() }
     function showAuth(){ el('auth').scrollIntoView({behavior:'smooth'}) }
-
     async function backfillUserStatsFromUsers({ batchSize = 400 } = {}) {
   if (!currentIsAdmin) {
     alert('Только админ может запускать backfill в браузере.');
     return;
   }
-
   const statsRef = db.collection('userStats');
   try {
     const snap = await statsRef.get();
@@ -403,21 +358,15 @@
       alert('userStats пуста.');
       return;
     }
-
     let batch = db.batch();
     let processed = 0;
     let updated = 0;
-    const missing = []; // uid, для которых не удалось взять email из users
-
-    // Проходим все userStats
+    const missing = [];
     for (const doc of snap.docs) {
       processed++;
       const uid = doc.id;
       const sdata = doc.data() || {};
-      // если уже есть email — пропускаем
       if (sdata.email && String(sdata.email).trim()) continue;
-
-      // пробуем взять user doc
       let email = null;
       let displayName = null;
       try {
@@ -428,10 +377,8 @@
           if (udata.displayName) displayName = String(udata.displayName).trim();
         }
       } catch (e) {
-        // ошибка доступа или другого рода — пропускаем и помечаем
         console.warn('users fetch fail for', uid, e && e.message ? e.message : e);
       }
-
       if (email) {
         const ref = statsRef.doc(uid);
         const payload = { email, displayName: displayName || (email.split ? email.split('@')[0] : '') };
@@ -440,16 +387,12 @@
       } else {
         missing.push(uid);
       }
-
-      // коммит батча
       if (processed % batchSize === 0) {
         await batch.commit();
         batch = db.batch();
         console.log(`Committed batch at ${processed} items`);
       }
     }
-
-    // финальный коммит
     await batch.commit();
 
     const msg = `Backfill completed. Processed: ${processed}. Updated: ${updated}. Missing: ${missing.length}.`;
@@ -460,23 +403,16 @@
     } else {
       alert(msg + '\nВсе userStats теперь содержат email.');
     }
-
-    // Обновляем рейтинг в UI
     if (typeof renderLeaderboard === 'function') renderLeaderboard();
   } catch (err) {
     console.error('Backfill failed:', err);
     alert('Backfill қатесі: ' + (err && err.message ? err.message : err));
   }
 }
-
-// Удобная обёртка — запускает backfill и выводит прогресс минимально
 async function startBackfill() {
   if (!confirm('Запустить backfill userStats из коллекции users? (выполнять только под админом)')) return;
   await backfillUserStatsFromUsers();
 }
-
-
-    // Initial subscription
     subscribeHomeworks();
   </script>
 </body>
