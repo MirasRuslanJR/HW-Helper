@@ -384,24 +384,38 @@
     function showAuth(){ el('auth').scrollIntoView({behavior:'smooth'}) }
 
     // Admin: backfill userStats from users collection (handles batch commits safely)
-    async function backfillUserStats(){
-      if(!currentIsAdmin) return alert('Тек әкімші қоса алады.');
-      try{
-        const usersSnap = await db.collection('users').get();
-        let batch = db.batch(); let count = 0;
-        for(const doc of usersSnap.docs){
-          const uid = doc.id; const data = doc.data() || {};
-          const ref = db.collection('userStats').doc(uid);
-          batch.set(ref, { points: data.points || 0, email: data.email || '', displayName: (data.displayName || (data.email ? data.email.split('@')[0] : '')) }, { merge: true });
-          count++;
-          if(count % 450 === 0){ await batch.commit(); batch = db.batch(); }
-        }
-        // commit remaining
-        await batch.commit();
-        alert('Backfill аяқталды — ' + usersSnap.size + ' пайдаланушы тексерілді.');
-        renderLeaderboard();
-      } catch(e){ console.error('backfillUserStats error', e); alert('Backfill қатесі: ' + (e.message||e)); }
+    async function backfillEmails() {
+  if (!currentIsAdmin) return alert('Только админ может делать backfill');
+
+  try {
+    const usersSnap = await db.collection('users').get();
+    let updated = 0;
+
+    for (const doc of usersSnap.docs) {
+      const uid = doc.id;
+      const userData = doc.data() || {};
+      const userStatsRef = db.collection('userStats').doc(uid);
+
+      // Получаем существующий userStats
+      const statsDoc = await userStatsRef.get();
+      if (statsDoc.exists && statsDoc.data().email) continue; // уже есть email
+
+      const email = userData.email || '';
+      if (!email) continue; // если email нет, пропускаем
+
+      // Обновляем userStats
+      await userStatsRef.set({ email, displayName: email.split('@')[0] }, { merge: true });
+      updated++;
     }
+
+    alert(`Backfill завершён! Обновлено email для ${updated} пользователей.`);
+    renderLeaderboard(); // обновляем таблицу рейтинга
+  } catch (e) {
+    console.error(e);
+    alert('Backfill ошибка: ' + (e.message || e));
+  }
+}
+
 
     // Initial subscription
     subscribeHomeworks();
