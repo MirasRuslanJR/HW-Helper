@@ -390,35 +390,89 @@
     function clearFilters(){ el('search').value=''; document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active')); const first = document.querySelector('#subject-list .subject-item'); if(first) first.classList.add('active'); el('sort').value='new'; renderFilters() }
     function showAuth(){ el('auth').scrollIntoView({behavior:'smooth'}) }
 
-    // Admin: backfill userStats from users collection (handles batch commits safely)
-    async function backfillEmailsFromUsers() {
+    async function backfillUserStatsFromUsers({ batchSize = 400 } = {}) {
+  if (!currentIsAdmin) {
+    alert('Только админ может запускать backfill в браузере.');
+    return;
+  }
+
+  const statsRef = db.collection('userStats');
   try {
-    const statsSnap = await db.collection('userStats').get();
+    const snap = await statsRef.get();
+    if (!snap || snap.empty) {
+      alert('userStats пуста.');
+      return;
+    }
+
+    let batch = db.batch();
+    let processed = 0;
     let updated = 0;
-    let missing = [];
-    for (let doc of statsSnap.docs) {
+    const missing = []; // uid, для которых не удалось взять email из users
+
+    // Проходим все userStats
+    for (const doc of snap.docs) {
+      processed++;
       const uid = doc.id;
+      const sdata = doc.data() || {};
+      // если уже есть email — пропускаем
+      if (sdata.email && String(sdata.email).trim()) continue;
+
+      // пробуем взять user doc
+      let email = null;
+      let displayName = null;
       try {
-        const userDoc = await db.collection('users').doc(uid).get();
-        if (userDoc.exists) {
-          const email = userDoc.data().email || '(no email)';
-          await db.collection('userStats').doc(uid).set({ email }, { merge: true });
-          updated++;
-        } else {
-          missing.push(uid);
+        const udoc = await db.collection('users').doc(uid).get();
+        if (udoc.exists) {
+          const udata = udoc.data() || {};
+          if (udata.email) email = String(udata.email).trim();
+          if (udata.displayName) displayName = String(udata.displayName).trim();
         }
       } catch (e) {
-        console.warn('users fetch fail for', uid, e.message);
+        // ошибка доступа или другого рода — пропускаем и помечаем
+        console.warn('users fetch fail for', uid, e && e.message ? e.message : e);
+      }
+
+      if (email) {
+        const ref = statsRef.doc(uid);
+        const payload = { email, displayName: displayName || (email.split ? email.split('@')[0] : '') };
+        batch.set(ref, payload, { merge: true });
+        updated++;
+      } else {
         missing.push(uid);
       }
+
+      // коммит батча
+      if (processed % batchSize === 0) {
+        await batch.commit();
+        batch = db.batch();
+        console.log(`Committed batch at ${processed} items`);
+      }
     }
-    alert(`Backfill finished. Updated: ${updated}, Missing: ${missing.length}`);
-    if (missing.length > 0) console.log('UID без email:', missing);
-    renderLeaderboard();
-  } catch (e) {
-    console.error(e);
-    alert('Backfill failed: ' + e.message);
+
+    // финальный коммит
+    await batch.commit();
+
+    const msg = `Backfill completed. Processed: ${processed}. Updated: ${updated}. Missing: ${missing.length}.`;
+    console.log(msg);
+    if (missing.length) {
+      console.warn('UIDs without user record or permission to read them (sample):', missing.slice(0,50));
+      alert(msg + `\nUID без user (проверь вручную): ${missing.slice(0,20).join(', ')}`);
+    } else {
+      alert(msg + '\nВсе userStats теперь содержат email.');
+    }
+
+    // Обновляем рейтинг в UI
+    if (typeof renderLeaderboard === 'function') renderLeaderboard();
+  } catch (err) {
+    console.error('Backfill failed:', err);
+    alert('Backfill қатесі: ' + (err && err.message ? err.message : err));
   }
+}
+
+// Удобная обёртка — запускает backfill и выводит прогресс минимально
+async function startBackfill() {
+  if (!confirm('Запустить backfill userStats из коллекции users? (выполнять только под админом)')) return;
+  await backfillUserStatsFromUsers();
 }
 
 
