@@ -391,35 +391,33 @@
     function showAuth(){ el('auth').scrollIntoView({behavior:'smooth'}) }
 
     // Admin: backfill userStats from users collection (handles batch commits safely)
-    async function backfillEmails() {
-  if (!currentIsAdmin) return alert('Только админ может делать backfill');
-
+    async function backfillEmailsFromUsers() {
   try {
-    const usersSnap = await db.collection('users').get();
+    const statsSnap = await db.collection('userStats').get();
     let updated = 0;
-
-    for (const doc of usersSnap.docs) {
+    let missing = [];
+    for (let doc of statsSnap.docs) {
       const uid = doc.id;
-      const userData = doc.data() || {};
-      const userStatsRef = db.collection('userStats').doc(uid);
-
-      // Получаем существующий userStats
-      const statsDoc = await userStatsRef.get();
-      if (statsDoc.exists && statsDoc.data().email) continue; // уже есть email
-
-      const email = userData.email || '';
-      if (!email) continue; // если email нет, пропускаем
-
-      // Обновляем userStats
-      await userStatsRef.set({ email, displayName: email.split('@')[0] }, { merge: true });
-      updated++;
+      try {
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+          const email = userDoc.data().email || '(no email)';
+          await db.collection('userStats').doc(uid).set({ email }, { merge: true });
+          updated++;
+        } else {
+          missing.push(uid);
+        }
+      } catch (e) {
+        console.warn('users fetch fail for', uid, e.message);
+        missing.push(uid);
+      }
     }
-
-    alert(`Backfill завершён! Обновлено email для ${updated} пользователей.`);
-    renderLeaderboard(); // обновляем таблицу рейтинга
+    alert(`Backfill finished. Updated: ${updated}, Missing: ${missing.length}`);
+    if (missing.length > 0) console.log('UID без email:', missing);
+    renderLeaderboard();
   } catch (e) {
     console.error(e);
-    alert('Backfill ошибка: ' + (e.message || e));
+    alert('Backfill failed: ' + e.message);
   }
 }
 
