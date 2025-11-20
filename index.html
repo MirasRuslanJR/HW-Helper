@@ -265,21 +265,28 @@
 
     // Leaderboard now shows emails explicitly (as the user requested)
     async function renderLeaderboard(){
-      try{
-        const lb = await db.collection('userStats').orderBy('points','desc').limit(10).get();
-        const node = el('leaderboard-list'); node.innerHTML = '';
-        lb.forEach(doc => {
-          const data = doc.data() || {};
-          const email = data.email || '';
-          const display = email || doc.id;
-          const pts = data.points || 0;
-          const div = document.createElement('div');
-          div.className = 'item';
-          div.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><strong title="${escapeHtml(display)}">${escapeHtml(display)}</strong></div><div>${pts}</div>`;
-          node.appendChild(div);
-        });
-      }catch(e){ console.error('renderLeaderboard error', e); }
-    }
+  try{
+    const lb = await db.collection('userStats').orderBy('points','desc').limit(100).get(); // limit при желании
+    const node = el('leaderboard-list');
+    node.innerHTML = '';
+    lb.forEach(doc => {
+      const data = doc.data() || {};
+      const email = (data.email && String(data.email).trim()) || '';
+      const display = email || (doc.id ? (doc.id.length > 8 ? doc.id.slice(0,6) + '...' : doc.id) : 'unknown');
+      const pts = data.points || 0;
+
+      const div = document.createElement('div');
+      div.className = 'item';
+      // если email отсутствует — добавляем подсказку/класс
+      const missingBadge = email ? '' : ' <span style="font-size:11px;color:#9ca3af;margin-left:8px">(no email)</span>';
+      div.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><strong title="${escapeHtml(display)}">${escapeHtml(display)}</strong>${missingBadge}</div><div>${pts}</div>`;
+      node.appendChild(div);
+    });
+  }catch(e){
+    console.error('renderLeaderboard error', e);
+  }
+}
+
 
     function parseSearchDate(raw){
       const dateMatch = raw.match(/^\s*(\d{1,2})[.\-\/]?(\d{1,2})[.\-\/]?(\d{2,4})\s*$/);
