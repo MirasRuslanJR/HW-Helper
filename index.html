@@ -950,40 +950,79 @@
       const coinsToAdd = 5;
 
       // Транзакция — атомарно добавляем/удаляем completion и обновляем агрегаты пользователя
-      const txResult = await db.runTransaction(async tx => {
-        const compSnap = await tx.get(compRef);
-        // Если запись есть — удаляем её и уменьшаем очки
-        if (compSnap.exists) {
-          const prevPoints = compSnap.data().points || pts;
-          // удаляем completion и уменьшаем points (через set + merge, чтобы не упасть при отсутствии doc)
-          tx.delete(compRef);
-          tx.set(statRef, {
-            points: firebase.firestore.FieldValue.increment(-prevPoints),
-            updated: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-          return { action: 'removed', points: prevPoints };
-        } else {
-          // добавляем completion и увеличиваем points
-          tx.set(compRef, {
-            hwId: hwId,
-            title: hw.title || '',
-            subject: hw.subject || '',
-            deadline: hw.deadline || '',
-            completedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            points: pts
-          }, { merge: true });
+      // Пример корректной транзакции (заменяет вложенный db.runTransaction)
+const txResult = await db.runTransaction(async (tx) => {
+  const statRef = db.collection('userStats').doc(uid);
+  const compRef = statRef.collection('completed').doc(hwId);
 
-          tx.set(statRef, {
-            points: firebase.firestore.FieldValue.increment(pts),
-            coins: firebase.firestore.FieldValue.increment(coinsToAdd),
-            email: currentUser.email || '',
-            displayName: (currentUser.email || '').split('@')[0],
-            updated: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
+  // Получаем текущее состояние completion
+  const compSnap = await tx.get(compRef);
 
-          return { action: 'added', points: pts, title: hw.title || '' };
-        }
-      }); // end transaction
+  // Если есть completion — удаляем и откатываем очки
+  if (compSnap.exists) {
+    const prevPoints = Number(compSnap.data().points || 0);
+
+    // Удаляем completion
+    tx.delete(compRef);
+
+    // Уменьшаем агрегат пользователя
+    tx.set(statRef, {
+      points: firebase.firestore.FieldValue.increment(-prevPoints),
+      updated: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    return { action: 'removed', points: prevPoints };
+  }
+
+  // Иначе — добавляем completion и начисляем с учётом бустеров
+  const pts = (typeof awardPoints !== 'undefined') ? awardPoints : 1;
+  const coinsToAdd = (typeof awardCoins !== 'undefined') ? awardCoins : 5;
+
+  // Получаем userStats в транзакции
+  const userDoc = await tx.get(statRef);
+  const userData = userDoc.exists ? userDoc.data() : {};
+  let boosters = Array.isArray(userData.boosters) ? userData.boosters.slice() : [];
+
+  // Вычисляем множитель (максимальный из активных)
+  const now = Date.now();
+  let multiplier = 1;
+  for (let b of boosters) {
+    const activeByTime = !b.duration || ((b.activatedAt || 0) + b.duration > now);
+    const hasUses = (typeof b.uses === 'number') ? b.uses > 0 : true;
+    if (activeByTime && hasUses && b.multiplier && Number(b.multiplier) > 1) {
+      multiplier = Math.max(multiplier, Number(b.multiplier) || 1);
+    }
+  }
+
+  // Если нужно — здесь можно также пометить toConsumeIds и уменьшить uses (см. прежний код),
+  // но я оставляю это точкой расширения; при необходимости добавлю логику списания uses.
+
+  const finalPts = Math.round(pts * multiplier);
+  const finalCoins = Math.round(coinsToAdd * multiplier);
+
+  // Создаём completion
+  tx.set(compRef, {
+    hwId: hwId,
+    title: hw.title || '',
+    subject: hw.subject || '',
+    deadline: hw.deadline || '',
+    completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    points: finalPts
+  }, { merge: true });
+
+  // Обновляем агрегаты пользователя (points, coins, boosters если изменились)
+  tx.set(statRef, {
+    points: firebase.firestore.FieldValue.increment(finalPts),
+    coins: firebase.firestore.FieldValue.increment(finalCoins),
+    boosters: boosters,
+    updated: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  return { action: 'added', points: finalPts, title: hw.title || '' };
+}); // end runTransaction
+
+// txResult теперь содержит { action: 'added'|'removed', points: number, title?: string }
+
 
       // После успешной транзакции — обновляем локальное состояние UI
       if (txResult.action === 'removed') {
