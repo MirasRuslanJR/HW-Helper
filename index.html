@@ -1611,7 +1611,7 @@ async function openCaseAnimation(caseData, userId) {
   `;
   // Перед await grantPrize(userId, selectedItem); добавь блокировку:
 const lockKey = `case_opening_${userId}`;
-if(window[lockKey]) {
+if (window[lockKey]) {
   alert('Подождите завершения предыдущего открытия');
   overlay.remove();
   return;
@@ -1619,11 +1619,38 @@ if(window[lockKey]) {
 window[lockKey] = true;
 
 try {
+  // даём приз ОДИН раз
   await grantPrize(userId, selectedItem);
+
+  // Обновляем UI баланса сразу после выдачи приза
+  try { await renderUserPoints(userId); } catch(e){ console.warn('renderUserPoints failed', e); }
+
+} catch (e) {
+  console.error('grantPrize error', e);
+
+  // Попытка вернуть монеты пользователю (refund) — на случай, если grantPrize упал после списания
+  try {
+    await db.runTransaction(async (tx) => {
+      const statRef = db.collection('userStats').doc(userId);
+      const s = await tx.get(statRef);
+      if (s.exists) {
+        tx.update(statRef, { coins: firebase.firestore.FieldValue.increment(caseData.price) });
+      } else {
+        tx.set(statRef, { coins: caseData.price }, { merge: true });
+      }
+    });
+    alert('Произошла ошибка при выдаче приза — монеты возвращены.');
+  } catch (refundErr) {
+    console.error('Refund failed', refundErr);
+    alert('Ошибка: не удалось вернуть монеты автоматически. Напишите админу.');
+  }
+
+  throw e;
 } finally {
   delete window[lockKey];
+  // убираем оверлей (анимация)
+  overlay.remove();
 }
-  await grantPrize(userId, selectedItem);
 }
 
 // Выдача приза
