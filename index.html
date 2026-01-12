@@ -3,74 +3,245 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Үй тапсырмалары — Homework Helper (improved)</title>
+  <title>Үй тапсырмалары — Homework Helper</title>
   <meta name="description" content="Үй тапсырмаларын басқару — қарапайым және қауіпсіз" />
   <style>
     :root{
-      --bg:#f4f7fb;
-      --card:#ffffff;
-      --muted:#6b7280;
-      --primary:#0b61c3;
-      --accent:#0763b8;
-      --success:#16a34a;
-      --danger:#ef4444;
-      --border:rgba(15,23,42,0.06);
-      --radius:12px;
-      --max-w:1100px;
-      font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      --bg:#f0f4f8; --card:#ffffff; --muted:#64748b; --primary:#3b82f6; --primary-dark:#2563eb;
+      --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --info:#06b6d4;
+      --border:rgba(15,23,42,0.08); --shadow:rgba(15,23,42,0.05);
+      --gradient-1:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      --gradient-2:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);
+      --gradient-3:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
+      font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#eef5ff);color:#0f172a}
-    .wrap{max-width:var(--max-w);margin:28px auto;padding:22px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,0.95),var(--card));box-shadow:0 8px 30px rgba(11,97,195,0.06)}
-    header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-    .brand{display:flex;align-items:center;gap:12px}
-    #logo-img{width:56px;height:56px;border-radius:10px;object-fit:cover;display:block}
-    h1{margin:0;font-size:18px}
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:var(--bg);line-height:1.6}
+    body{padding:20px}
+    @keyframes loaderBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.1); }
+}
+    /* WRAPPER */
+    .wrap{max-width:1400px;margin:0 auto;animation:fadeIn 0.4s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    
+    /* HEADER */
+    header{background:var(--card);border-radius:16px;padding:20px 24px;box-shadow:0 2px 8px var(--shadow),0 8px 24px rgba(59,130,246,0.08);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+    .brand{display:flex;align-items:center;gap:14px}
+    #logo-img{width:56px;height:56px;border-radius:12px;background:var(--gradient-1);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:24px;box-shadow:0 4px 12px rgba(102,126,234,0.3)}
+    h1{font-size:22px;font-weight:700;color:#0f172a}
     .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .btn{padding:10px 14px;border-radius:10px;border:0;background:var(--primary);color:#fff;font-weight:600;cursor:pointer}
-    .btn.ghost{background:transparent;color:var(--primary);border:1px solid rgba(11,97,195,0.12)}
+    .thetitle{color: #c8c8c8;}
+    /* BUTTONS */
+    .btn{padding:10px 18px;border-radius:10px;border:0;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;font-size:14px;transition:all 0.2s;box-shadow:0 2px 4px rgba(59,130,246,0.2);font-family:inherit}
+    .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 12px rgba(59,130,246,0.4);background:var(--primary-dark)}
+    .btn:active{transform:translateY(0)}
+    .btn:disabled{opacity:0.6;cursor:not-allowed}
+    .btn.ghost{background:transparent;color:var(--primary);border:1px solid rgba(59,130,246,0.2);box-shadow:none}
+    .btn.ghost:hover:not(:disabled){background:rgba(59,130,246,0.05);border-color:var(--primary)}
+    .btn.success{background:var(--success);box-shadow:0 2px 4px rgba(16,185,129,0.2)}
+    .btn.success:hover{background:#059669}
+    .btn.danger{background:var(--danger);box-shadow:0 2px 4px rgba(239,68,68,0.2)}
+    .btn.danger:hover{background:#dc2626}
+    
+    /* BADGES */
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;background:rgba(59,130,246,0.1);color:var(--primary)}
+    .badge.success{background:rgba(16,185,129,0.1);color:var(--success)}
+    .badge.warning{background:rgba(245,158,11,0.1);color:var(--warning)}
+    .badge.gold{background:linear-gradient(135deg,#ffd700,#ffed4e);color:#854d0e;box-shadow:0 2px 8px rgba(255,215,0,0.3)}
+
+.theme-purple { --primary: #a855f7; --primary-dark: #9333ea; --gradient-1: linear-gradient(135deg, #c084fc 0%, #9333ea 100%); }
+.theme-black { --primary: #404040; --primary-dark: #262626; --gradient-1: linear-gradient(135deg, #525252 0%, #171717 100%); }
+.theme-red { --primary: #ef4444; --primary-dark: #dc2626; --gradient-1: linear-gradient(135deg, #f87171 0%, #dc2626 100%); }
+.theme-green { --primary: #10b981; --primary-dark: #059669; --gradient-1: linear-gradient(135deg, #34d399 0%, #059669 100%); }
+.theme-orange { --primary: #f97316; --primary-dark: #ea580c; --gradient-1: linear-gradient(135deg, #fb923c 0%, #ea580c 100%); }
+.theme-pink { --primary: #ec4899; --primary-dark: #db2777; --gradient-1: linear-gradient(135deg, #f9a8d4 0%, #db2777 100%); }
+.theme-cyan { --primary: #06b6d4; --primary-dark: #0891b2; --gradient-1: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%); }
+.theme-gold { --primary: #f59e0b; --primary-dark: #d97706; --gradient-1: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); }
+
+/* Аватарки */
+.avatar-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin: 16px 0; }
+.avatar-option { width: 70px; height: 70px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 36px; background: var(--card); }
+.avatar-option:hover { transform: scale(1.1); border-color: var(--primary); }
+.avatar-option.selected { border-color: var(--primary); box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+.avatar-option.locked { opacity: 0.5; cursor: not-allowed; position: relative; }
+.avatar-option.locked::after { content: '🔒'; position: absolute; bottom: -5px; right: -5px; font-size: 18px; }
+
+/* Улучшенные значки */
+.badge-showcase { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.badge-large { padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.badge-legendary { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #854d0e; animation: badgePulse 2s infinite; }
+.badge-epic { background: linear-gradient(135deg, #a855f7, #7c3aed); color: #fff; }
+.badge-rare { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+.badge-common { background: linear-gradient(135deg, #64748b, #475569); color: #fff; }
+@keyframes badgePulse { 0%, 100% { box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3); } 50% { box-shadow: 0 4px 16px rgba(255, 215, 0, 0.6); } }
+
+/* Рарность призов */
+.rarity-legendary { border-left: 4px solid #ffd700; background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent); }
+.rarity-epic { border-left: 4px solid #a855f7; background: linear-gradient(90deg, rgba(168, 85, 247, 0.1), transparent); }
+.rarity-rare { border-left: 4px solid #3b82f6; background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), transparent); }
+.rarity-common { border-left: 4px solid #64748b; background: linear-gradient(90deg, rgba(100, 116, 139, 0.1), transparent); }
+
+/* Анимация открытия кейса */
+.case-opening { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); z-index: 200; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s; }
+.case-box { width: 200px; height: 200px; background: var(--gradient-1); border-radius: 20px; animation: caseShake 0.5s infinite; display: flex; align-items: center; justify-content: center; font-size: 80px; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.6); }
+@keyframes caseShake { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+.prize-reveal { animation: prizeReveal 0.6s ease; }
+@keyframes prizeReveal { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+    /* TYPOGRAPHY */
     .small{font-size:13px;color:var(--muted)}
-    .main{display:flex;gap:16px;margin-top:20px}
-    .sidebar{background:var(--card);border-radius:12px;padding:14px;border:1px solid var(--border);box-shadow:0 6px 16px rgba(2,6,23,0.03);flex:0 0 320px}
-    .search{display:flex;gap:8px;flex-direction:column}
-    input.search-input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06)}
-    select.filter{padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06)}
-    .subject-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-    .subject-item{padding:8px 10px;border-radius:8px;font-size:14px;cursor:pointer;border:1px solid transparent}
-    .subject-item.active{background:linear-gradient(90deg,rgba(11,97,195,0.06),rgba(11,97,195,0.03));border-color:rgba(11,97,195,0.08);color:var(--accent)}
-    .content{flex:1}
-    .content-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    .card{background:var(--card);border-radius:12px;padding:14px;border:1px solid var(--border);box-shadow:0 6px 14px rgba(2,6,23,0.02)}
-    .add-form{display:flex;flex-direction:column;gap:10px}
-    input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06);font-size:14px}
-    textarea{min-height:90px;resize:vertical}
-    .hw-list{display:flex;flex-direction:column;gap:12px;margin-top:12px}
-    .hw{padding:12px;border-radius:10px;border:1px solid rgba(11,97,195,0.04);background:linear-gradient(180deg,rgba(248,252,255,0.8),#fff);display:flex;flex-direction:column}
-    .hw .title{font-weight:700}
-    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:12px;flex-wrap:wrap}
-    .meta > div{min-width:0}
-    .meta .right{display:flex;flex-direction:column;align-items:flex-end}
-    .tag{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(11,97,195,0.08);color:var(--accent);margin-bottom:4px}
-    .hw .desc{margin-top:8px;color:var(--muted);font-size:14px}
-    .hw .author{font-size:13px;color:var(--muted)}
-    .complete-btn{padding:8px 10px;border-radius:8px;border:1px solid rgba(15,23,42,0.06);cursor:pointer;background:transparent}
-    .complete-btn.done{background:var(--success);color:white;border-color:rgba(0,0,0,0.05)}
-    .leaderboard{margin-top:14px}
-    .leaderboard .item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px}
-    .auth-card{max-width:520px;margin:30px auto;padding:18px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid var(--border)}
-    .hidden{display:none}
-    @media (max-width:900px){
-      .main{flex-direction:column}
-      .sidebar{order:2;flex:0 0 auto}
+    .muted-italic{color:var(--muted);font-style:italic;font-size:13px}
+    /* LAYOUT */
+    .main{display:grid;grid-template-columns:340px 1fr;gap:20px;margin-top:20px}
+    
+    /* SIDEBAR */
+    .sidebar{background:var(--card);border-radius:16px;padding:20px;box-shadow:0 2px 8px var(--shadow);height:fit-content;position:sticky;top:20px}
+    .section-title{font-size:14px;font-weight:600;color:#cfcfcf;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .search{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+    input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);font-size:14px;font-family:inherit;transition:all 0.2s;background:var(--card)}
+    input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+    textarea{min-height:100px;resize:vertical}
+    
+    /* SUBJECT LIST */
+    .subject-list{display:flex;flex-direction:column;gap:6px}
+    .subject-item{padding:10px 14px;border-radius:10px;font-size:14px;cursor:pointer;border:1px solid transparent;transition:all 0.2s;display:flex;align-items:center;gap:8px}
+    .subject-item:hover{background:rgba(59,130,246,0.05)}
+    .subject-item.active{background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(59,130,246,0.05));border-color:rgba(59,130,246,0.2);color:var(--primary);font-weight:600}
+    
+    /* LEADERBOARD */
+    .leaderboard{background:linear-gradient(135deg,rgba(59,130,246,0.05),rgba(139,92,246,0.05));border-radius:12px;padding:16px;margin-top:20px}
+    .leaderboard .item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;margin-bottom:4px;background:var(--card);transition:all 0.2s}
+    .leaderboard .item:hover{transform:translateX(4px);box-shadow:0 2px 8px var(--shadow)}
+    .rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;margin-right:8px}
+    .rank-1{background:linear-gradient(135deg,#ffd700,#ffed4e);color:#854d0e}
+    .rank-2{background:linear-gradient(135deg,#c0c0c0,#e8e8e8);color:#525252}
+    .rank-3{background:linear-gradient(135deg,#cd7f32,#e8a87c);color:#fff}
+    
+    /* CONTENT */
+    .content{background:var(--card);border-radius:16px;padding:24px;box-shadow:0 2px 8px var(--shadow)}
+    .content-header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid rgba(59,130,246,0.1)}
+    
+    /* CARD */
+    .card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border);box-shadow:0 2px 6px var(--shadow);transition:all 0.3s}
+    
+    /* HOMEWORK LIST */
+    .hw-list{display:grid;gap:16px}
+    .hw{padding:20px;border-radius:14px;border:1px solid var(--border);background:linear-gradient(135deg,rgba(255,255,255,0.9),rgba(248,250,252,0.9));transition:all 0.3s;position:relative;overflow:hidden}
+    .hw::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--gradient-3);opacity:0;transition:opacity 0.3s}
+    .hw:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.3)}
+    .hw:hover::before{opacity:1}
+    .hw-header{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:12px}
+    .hw .title{font-size:18px;font-weight:700;color:#0f172a;margin-bottom:6px}
+    .hw .meta-info{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .hw .desc{color:var(--muted);font-size:14px;margin:12px 0;line-height:1.6}
+    .hw .actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--border)}
+    
+    /* COMPLETE BUTTON */
+    .complete-btn{padding:10px 16px;border-radius:10px;border:1px solid var(--border);cursor:pointer;background:#fff;transition:all 0.2s;font-weight:600;font-size:14px}
+    .complete-btn:hover:not(:disabled){background:rgba(16,185,129,0.05);border-color:var(--success);transform:translateY(-2px)}
+    .complete-btn.done{background:var(--success);color:#fff;border:none;box-shadow:0 4px 12px rgba(16,185,129,0.3)}
+    .complete-btn.done:hover{background:#059669}
+    
+    /* AUTH */
+    .auth-card{max-width:480px;margin:60px auto;padding:32px;border-radius:16px;background:var(--card);box-shadow:0 8px 32px rgba(59,130,246,0.15);border:1px solid var(--border)}
+    .auth-card h3{font-size:24px;margin-bottom:8px}
+    
+    /* MODALS */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;animation:fadeIn 0.2s}
+    .modal{background:var(--card);border-radius:16px;padding:24px;max-width:600px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp 0.3s ease}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .modal h4{font-size:20px;margin-bottom:16px;color:#0f172a}
+    .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+    
+    /* Snow layer (фиксирован поверх страницы) */
+#snow-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+/* Одиночная снежинка */
+#snow-layer .snow {
+  position: absolute;
+  left: 0; /* старт в левом краю, реальная позиция задаётся через translate(var(--x-start)) */
+  top: 0;
+  width: var(--size, 8px);
+  height: var(--size, 8px);
+  background: var(--snow-color, white);
+  border-radius: 50%;
+  opacity: var(--opacity, 0.85);
+  transform: translate(var(--x-start, 0vw), var(--y-start, -10px)) scale(var(--scale, 1));
+  will-change: transform, opacity;
+  filter: drop-shadow(0 0 calc(var(--size,8px) / 6) rgba(0,0,0,0.05));
+  animation-name: fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--dur, 12s);
+  animation-delay: var(--delay, 0s);
+}
+
+/* Общий ключевой кадр использующий CSS-переменные, задаваемые per-element */
+@keyframes fall {
+  0% {
+    transform: translate(var(--x-start, 0vw), -10px) scale(var(--scale,1));
+    opacity: var(--opacity, 0.9);
+  }
+  50% {
+    transform: translate(var(--x-mid, 0vw), var(--y-mid, 40vh)) scale(var(--scale,1));
+    opacity: calc(var(--opacity, 0.9) * 0.95);
+  }
+  100% {
+    transform: translate(var(--x-end, 0vw), 100vh) scale(var(--scale,1));
+    opacity: 0.9;
+  }
+}
+
+/* Варианты для темной темы (если у вас .dark на документе) */
+.dark #snow-layer .snow {
+  --snow-color: rgba(220,235,255,0.95);
+  filter: drop-shadow(0 0 8px rgba(200,220,255,0.45));
+}
+
+
+    /* DARK THEME */
+    .dark{--bg:#0f172a;--card:#1e293b;--muted:#cbd5e1;--primary:#60a5fa;--primary-dark:#3b82f6;--border:rgba(255,255,255,0.15);--shadow:rgba(0,0,0,0.3);color:#f1f5f9}
+    .dark .hw{background:linear-gradient(135deg,rgba(30,41,59,0.9),rgba(15,23,42,0.9));border-color:rgba(255,255,255,0.1)}
+    .dark .snow{background:rgba(200,220,255,0.85);box-shadow:0 0 12px rgba(200,220,255,0.6)}
+    .dark input,.dark textarea,.dark select{background:#1e293b;color:#e2e8f0;border-color:rgba(255,255,255,0.1)}
+    .dark .complete-btn{background:#1e293b;color:#e2e8f0}
+    .dark .small{color:#cbd5e1}
+    .dark .hw .title{color:#f1f5f9}
+    .dark .section-title{color:#f1f5f9}
+    .dark h1,h2,h3,h4{color:#f1f5f9}
+    .dark .leaderboard{background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(139,92,246,0.1))}
+    .dark .leaderboard .item{background:#1e293b;border:1px solid rgba(255,255,255,0.1)}
+    .dark .leaderboard .item:hover{background:#334155}
+    
+    /* UTILITIES */
+    .hidden{display:none!important}
+    .error-msg{color:var(--danger);font-size:13px;margin-top:8px}
+    .success-msg{color:var(--success);font-size:13px;margin-top:8px}
+    .divider{height:1px;background:var(--border);margin:16px 0}
+    
+    /* RESPONSIVE */
+    @media (max-width:1024px){
+      .main{grid-template-columns:1fr;gap:16px}
+      .sidebar{position:static;order:2}
       .content{order:1}
     }
-    @media (max-width:480px){
-      input.search-input{padding:14px;font-size:16px}
-      .top-actions{gap:6px}
-      .meta{flex-direction:column;align-items:flex-start}
-      .meta .right{align-items:flex-start}
-      .hw{padding:10px}
-      #logo-img{width:48px;height:48px}
+    @media (max-width:640px){
+      body{padding:12px}
+      header{padding:16px;border-radius:12px}
+      #logo-img{width:48px;height:48px;font-size:20px}
+      h1{font-size:18px}
+      .btn{padding:8px 14px;font-size:13px}
+      .hw{padding:16px}
+      .hw .title{font-size:16px}
+      .modal{padding:20px;width:95%}
     }
   </style>
 </head>
@@ -78,64 +249,80 @@
   <div class="wrap">
     <header>
       <div class="brand">
-        <img id="logo-img" src="./image-removebg-preview (1).png" alt="logo">
+        <div id="logo-img">📚</div>
         <div>
-          <h1>Үй тапсырмалары</h1>
-          <div class="small">Қарапайым және ыңғайлы</div>
+          <h1 class="thetitle">Үй тапсырмалары</h1>
+          <div class="small">Студенттерге арналған платформа</div>
         </div>
       </div>
       <div class="top-actions">
         <div class="small" id="user-email"></div>
         <div class="small" id="user-points"></div>
+        <div class="small" id="user-coins"></div>
         <button id="btn-logout" class="btn ghost hidden" onclick="logout()">Шығу</button>
         <button id="btn-show-auth" class="btn" onclick="showAuth()">Кіру / Тіркелу</button>
       </div>
     </header>
+
     <main id="app" class="main hidden">
-      <aside class="sidebar card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div class="small">Іздеу</div>
-            <div class="small">Тақырып, пән және дедлайн бойынша іздеңіз</div>
-          </div>
-          <button class="btn ghost" onclick="clearFilters()">Тазалау</button>
+      <aside class="sidebar">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div class="section-title">🔍 Іздеу</div>
+          <button class="btn ghost" style="padding:6px 12px;font-size:12px" onclick="clearFilters()">Тазалау</button>
         </div>
-        <div class="search" style="margin-top:10px">
-          <input id="search" class="search-input" placeholder="Іздеу..." oninput="renderFilters()" />
-          <select id="sort" class="filter" onchange="renderFilters()">
+
+        <div class="search">
+          <input id="search" placeholder="Іздеу..." oninput="renderFilters()" />
+          <select id="sort" onchange="renderFilters()">
             <option value="new">Жаңадан — ескіге</option>
             <option value="old">Ескідан — жаңға</option>
-            <option value="deadline">Срок бойынша</option>
+            <option value="deadline">Дедлайн бойынша</option>
+            <option value="archive">Тек архив</option>
           </select>
-          <button id="btn-backfill" class="btn ghost hidden" onclick="startBackfill()">Backfill userStats</button>
         </div>
-        <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
-          <div class="small">Пәндер</div>
-          <div id="subject-list" class="subject-list"></div>
+
+        <div class="section-title">📖 Пәндер</div>
+        <div id="subject-list" class="subject-list"></div>
+
+        <div class="leaderboard">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div class="section-title" style="margin:0">🏆 Рейтинг</div>
+            <button class="btn ghost" style="padding:4px 10px;font-size:11px" onclick="openLeaderboardFull()">Толық</button>
+          </div>
+          <div id="leaderboard-list"></div>
+          <div class="small" style="margin-top:12px;text-align:center">*Тапсырма орындаған сайын ұпай қосылады</div>
         </div>
-        <div class="leaderboard card" style="margin-top:12px;padding:10px">
-          <div class="small">Рейтинг оқушылар</div>
-          <div id="leaderboard-list" style="margin-top:8px"></div>
-          <div class="small" style="margin-top:8px">*Ұпай тапсырманы орындаған сайын қосылады. Тапсырма жойылса, ұпай сақталады.</div>
+
+        <div class="divider"></div>
+        
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn ghost" onclick="openStore()">🎁 Кейстер</button>
+          <button class="btn ghost" onclick="openEvents()">📝 СОР/СОЧ</button>
+          <button class="btn ghost" onclick="openProfile()">👤 Профиль</button>
+          <button class="btn ghost" onclick="openDonate()">💰 Донат</button>
         </div>
-        <div style="margin-top:14px" class="small">Тек админ жаңа тапсырма қоса алады.</div>
+
+        <div class="small" style="margin-top:16px;text-align:center;opacity:0.7">v2.0 • Made with ❤️</div>
       </aside>
+
       <section class="content">
         <div class="content-header">
           <div>
-            <h3 style="margin:0">Үй жұмыстары</h3>
-            <div class="small">Барлығы — <span id="count">0</span></div>
+            <h2 style="font-size:24px;margin-bottom:4px">Үй жұмыстары</h2>
+            <div class="small">Барлығы: <strong id="count">0</strong> тапсырма</div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <button class="btn ghost" onclick="reloadOnce()">Жаңарту</button>
-            <button class="btn hidden" id="open-add" onclick="toggleAdd()">Үй жұмысын қосу</button>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn ghost" onclick="reloadOnce()">🔄 Жаңарту</button>
+            <button class="btn hidden" id="open-add" onclick="toggleAdd()">➕ Қосу</button>
           </div>
         </div>
-        <div id="add-card" class="card hidden" style="margin-top:12px">
-          <form class="add-form" onsubmit="event.preventDefault();addHomework();">
-            <input id="hw-title" placeholder="Тақырып" />
-            <select id="hw-subject">
-              <option value="">Пән</option>
+
+        <div id="add-card" class="card hidden" style="margin-bottom:20px">
+          <h4 style="margin-bottom:16px">Жаңа тапсырма қосу</h4>
+          <form class="add-form" onsubmit="event.preventDefault();addHomework();" style="display:flex;flex-direction:column;gap:12px">
+            <input id="hw-title" placeholder="Тақырып *" required />
+            <select id="hw-subject" required>
+              <option value="">Пән таңдаңыз *</option>
               <option>Ағылшын тілі</option>
               <option>Биология</option>
               <option>География</option>
@@ -149,129 +336,378 @@
               <option>Физика</option>
               <option>Химия</option>
             </select>
-            <input id="hw-deadline" type="date" />
-            <textarea id="hw-desc" placeholder="Сипаттама"></textarea>
-            <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
-              <div id="add-msg" class="small" style="align-self:center;color:var(--success)"></div>
+            <input id="hw-deadline" type="date" required />
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <input id="hw-requires-proof" type="checkbox" style="width:auto" />
+              <span>Доказательство талап етіледі</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <input id="hw-archived" type="checkbox" style="width:auto" />
+              <span>Архив (0.5 балл)</span>
+            </label>
+            <textarea id="hw-desc" placeholder="Сипаттама (міндетті емес)"></textarea>
+            <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+              <div id="add-msg" class="small" style="flex:1"></div>
               <button class="btn ghost" type="button" onclick="toggleAdd()">Болдырмау</button>
               <button class="btn" type="submit">Қосу</button>
             </div>
           </form>
         </div>
+
         <div id="homework-list" class="hw-list"></div>
       </section>
     </main>
+
     <div id="auth" class="auth-card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <h3 style="margin:0">Кіру немесе тіркелу</h3>
-          <div class="small">Email және құпия сөз арқылы</div>
+      <h3>Кіру немесе тіркелу</h3>
+      <div class="small" style="margin-bottom:24px">Email және құпия сөз арқылы жүйеге кіріңіз</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <input id="email" type="email" placeholder="Email мекенжайы" />
+        <input id="password" type="password" placeholder="Құпиясөз (кемінде 6 таңба)" />
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="login()" style="flex:1">Кіру</button>
+          <button class="btn ghost" onclick="register()" style="flex:1">Тіркелу</button>
         </div>
-      </div>
-      <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
-        <input id="email" type="email" placeholder="Email" />
-        <input id="password" type="password" placeholder="Құпиясөз (≥6)" />
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn" onclick="login()">Кіру</button>
-          <button class="btn ghost" onclick="register()">Тіркелу</button>
-        </div>
-        <div id="auth-msg" class="small" style="color:var(--danger)"></div>
+        <div id="auth-msg" class="error-msg"></div>
       </div>
     </div>
   </div>
+
+  <div id="modal-proof" class="hidden"></div>
+  <div id="modal-store" class="hidden"></div>
+  <div id="modal-profile" class="hidden"></div>
+  <div id="modal-events" class="hidden"></div>
+  <div id="modal-donate" class="hidden"></div>
+  <div id="modal-leaderboard" class="hidden"></div>
+  <div id="snow-layer" aria-hidden="true"></div>
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
   <script>
-    const firebaseConfig={apiKey:"AIzaSyAqwhaz_726NPUVhtmDI8W6Xuo4GCQNUWM",authDomain:"hw-helper-b47ca.firebaseapp.com",projectId:"hw-helper-b47ca",storageBucket:"hw-helper-b47ca.firebasestorage.app",messagingSenderId:"939392073070",appId:"1:939392073070:web:7d0a4508459ea9e586557f",measurementId:"G-2EVV90NXFS"};
-    firebase.initializeApp(firebaseConfig);
-    const auth=firebase.auth();
-    const db=firebase.firestore();
+    const firebaseConfig = {
+  apiKey:"AIzaSyAqwhaz_726NPUVhtmDI8W6Xuo4GCQNUWM",
+  authDomain:"hw-helper-b47ca.firebaseapp.com",
+  projectId:"hw-helper-b47ca",
+  storageBucket:"hw-helper-b47ca.appspot.com",
+  messagingSenderId:"939392073070",
+  appId:"1:939392073070:web:7d0a4508459ea9e586557f"
+};
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+    const CLOUDINARY_CLOUD_NAME = 'dlsyrhubw';
+    const CLOUDINARY_UPLOAD_PRESET = 'hw_proofs';
 
-    const el=id=>document.getElementById(id);
-    let currentUser=null; let currentIsAdmin=false; let hwUnsubscribe=null; let lastSnapshot=[]; let completedMap={};
-    const subjects=["Ағылшын тілі","Биология","География","Дүниежүзі тарихы","Информатика","Қазақ тілі мен әдебиеті","Қазақстан тарихы","Құқық негіздері","Математика","Орыс тілі мен әдебиеті","Физика","Химия"];
-    function escapeHtml(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+    /* ===== Helpers & state ===== */
+    const el = id => document.getElementById(id);
+    let currentUser = null;
+    let currentIsAdmin = false;
+    let hwUnsubscribe = null;
+    let lastSnapshot = [];
+    let completedMap = {};
+    let pendingProofTarget = null;
+    const subjects = ["Ағылшын тілі","Биология","География","Дүниежүзі тарихы","Информатика","Қазақ тілі мен әдебиеті","Қазақстан тарихы","Құқық негіздері","Математика","Орыс тілі мен әдебиеті","Физика","Химия"];
+    const POINTS_MULTIPLIER = 10;
+    function pointsToDisplay(pts){ return Math.floor((pts || 0)) }
+    function pointsToStore(displayPts){ return Math.round(displayPts * POINTS_MULTIPLIER) }
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
     function formatDate(v){
       if(!v) return '';
       try{
         if(typeof v.toDate === 'function') v = v.toDate();
         const d = new Date(v);
-        if(isNaN(d)) return String(v);
-        return d.toLocaleDateString();
-      } catch(e){ return String(v); }
+        if(isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('ru-RU');
+      } catch(e){ return '' }
     }
+    function uidShort(u){ return u ? (u.length>8 ? u.slice(0,6)+'...' : u) : 'unknown' }
+
+    /* ===== Subject list render ===== */
     function renderSubjectList(){
-      const node=el('subject-list'); node.innerHTML='';
-      const all=document.createElement('div'); all.className='subject-item active'; all.innerText='Барлығы'; all.onclick=()=>{document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active'));all.classList.add('active');renderFilters()}; node.appendChild(all);
-      subjects.forEach(s=>{const d=document.createElement('div');d.className='subject-item';d.innerText=s;d.onclick=()=>{document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active'));d.classList.add('active');el('search').value='';renderFilters()};node.appendChild(d)})
+      const node = el('subject-list');
+      node.innerHTML = '';
+      const all = document.createElement('div');
+      all.className='subject-item active';
+      all.innerHTML = '<span>📌</span><span>Барлығы</span>';
+      all.onclick = ()=>{
+        document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active'));
+        all.classList.add('active');
+        el('search').value='';
+        renderFilters();
+      };
+      node.appendChild(all);
+      
+      const icons = ['🌍','🧬','🗺️','📜','💻','📖','🏛️','⚖️','📝','➗','⚡','🧪'];
+      subjects.forEach((s,i)=>{
+        const d=document.createElement('div');
+        d.className='subject-item';
+        d.innerHTML = `<span>${icons[i]||'📚'}</span><span>${escapeHtml(s)}</span>`;
+        d.onclick = ()=>{
+          document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active'));
+          d.classList.add('active');
+          el('search').value='';
+          renderFilters();
+        };
+        node.appendChild(d);
+      });
     }
     renderSubjectList();
+
+    /* ===== Auth state handling ===== */
     auth.onAuthStateChanged(async user=>{
       try{
-        currentUser=user;
+        currentUser = user;
         if(user){
-          el('auth').classList.add('hidden'); el('app').classList.remove('hidden'); el('user-email').innerText = user.email || user.uid; el('btn-show-auth').classList.add('hidden'); el('btn-logout').classList.remove('hidden');
+          el('auth').classList.add('hidden');
+          el('app').classList.remove('hidden');
+          el('user-email').innerHTML = `👤 ${escapeHtml(user.email || user.uid)}`;
+          el('btn-show-auth').classList.add('hidden');
+          el('btn-logout').classList.remove('hidden');
+
           currentIsAdmin = await checkAdmin(user.uid);
-          if(currentIsAdmin){ el('open-add').classList.remove('hidden'); el('btn-backfill').classList.remove('hidden'); } else { el('open-add').classList.add('hidden'); el('btn-backfill').classList.add('hidden'); }
+          if(currentIsAdmin) el('open-add').classList.remove('hidden');
+          else el('open-add').classList.add('hidden');
+
           await loadUserCompleted(user.uid);
           await ensureUserStats(user.uid);
           await renderUserPoints(user.uid);
           subscribeHomeworks();
         } else {
-          el('auth').classList.remove('hidden'); el('app').classList.add('hidden'); el('user-email').innerText=''; el('user-points').innerText=''; el('btn-show-auth').classList.remove('hidden'); el('btn-logout').classList.add('hidden');
-          completedMap={};
+          el('auth').classList.remove('hidden');
+          el('app').classList.add('hidden');
+          el('user-email').innerText='';
+          el('user-points').innerText='';
+          el('user-coins').innerText='';
+          el('btn-show-auth').classList.remove('hidden');
+          el('btn-logout').classList.add('hidden');
+          completedMap = {};
           subscribeHomeworks();
         }
-      } catch(e){ console.error('onAuthStateChanged handler error', e); }
+        applyAutoWinter();
+      } catch(e){ console.error('onAuthStateChanged',e) }
     });
-    async function checkAdmin(uid){ try{ const doc = await db.collection('admins').doc(uid).get(); return doc.exists && doc.data().isAdmin === true }catch(e){console.error('checkAdmin',e);return false} }
-    function subscribeHomeworks(){
-      if(hwUnsubscribe){ hwUnsubscribe(); hwUnsubscribe = null; }
+
+    async function checkAdmin(uid){
       try{
-        hwUnsubscribe = db.collection('homework').orderBy('createdAt','desc').onSnapshot(snap=>{
-          lastSnapshot = snap.docs.map(d=>({id:d.id,...d.data()}));
-          renderFilters(); renderLeaderboard();
-        }, err=>{ console.error('homework onSnapshot error', err); });
-      } catch(e){ console.error('subscribeHomeworks error', e); }
+        const doc = await db.collection('admins').doc(uid).get();
+        return doc.exists && doc.data().isAdmin === true
+      }catch(e){ return false }
     }
-    async function loadUserCompleted(uid){ completedMap={}; if(!uid) return; try{ const snap = await db.collection('userStats').doc(uid).collection('completed').get(); snap.forEach(d=>{ completedMap[d.id] = d.data(); }); }catch(e){ console.error('loadUserCompleted', e);} }
-    async function ensureUserStats(uid){ if(!uid) return; const ref = db.collection('userStats').doc(uid); try{ const doc = await ref.get(); if(!doc.exists){ await ref.set({points:0,updated:firebase.firestore.FieldValue.serverTimestamp()}); } }catch(e){ console.error('ensureUserStats', e); } }
-    async function renderUserPoints(uid){ if(!uid) return; try{ const doc = await db.collection('userStats').doc(uid).get(); const pts = doc.exists ? doc.data().points || 0 : 0; el('user-points').innerText = 'Ұпай: ' + pts; }catch(e){ console.error('renderUserPoints', e); } }
-    async function renderLeaderboard(){
+
+    /* ===== Subscribe homeworks ===== */
+    function subscribeHomeworks(){
+  if (hwUnsubscribe){
+    try { hwUnsubscribe(); } catch(e){ console.warn('Unsubscribe error', e); }
+    hwUnsubscribe = null;
+  }
   try{
-    const lb = await db.collection('userStats').orderBy('points','desc').limit(100).get(); // limit при желании
-    const node = el('leaderboard-list');
-    node.innerHTML = '';
-    lb.forEach(doc => {
-      const data = doc.data() || {};
-      const email = (data.email && String(data.email).trim()) || '';
-      const display = email || (doc.id ? (doc.id.length > 8 ? doc.id.slice(0,6) + '...' : doc.id) : 'unknown');
-      const pts = data.points || 0;
-      const div = document.createElement('div');
-      div.className = 'item';
-      const missingBadge = email ? '' : ' <span style="font-size:11px;color:#9ca3af;margin-left:8px">(no email)</span>';
-      div.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><strong title="${escapeHtml(display)}">${escapeHtml(display)}</strong>${missingBadge}</div><div>${pts}</div>`;
-      node.appendChild(div);
-    });
-  }catch(e){
-    console.error('renderLeaderboard error', e);
+    hwUnsubscribe = db.collection('homework').orderBy('createdAt','desc')
+      .onSnapshot(snap => {
+        lastSnapshot = snap.docs.map(d => ({ id: d.id, ...d.data() })); // <-- СПРЕД
+        renderFilters();
+        renderLeaderboard();
+      }, err => { console.error('homework onSnapshot error', err); });
+  } catch(e){
+    console.error('subscribeHomeworks error', e);
   }
 }
+
+
+    /* ===== User completed list ===== */
+    async function loadUserCompleted(uid){
+      completedMap = {};
+      if(!uid) return;
+      try{
+        const snap = await db.collection('userStats').doc(uid).collection('completed').get();
+        snap.forEach(d=>{ completedMap[d.id] = d.data() });
+      }catch(e){ console.error('loadUserCompleted', e) }
+    }
+
+    async function ensureUserStats(uid){
+      if(!uid) return;
+      const ref = db.collection('userStats').doc(uid);
+      try{
+        const doc = await ref.get();
+        if(!doc.exists){
+          await ref.set({
+            points:0,
+            coins:0,
+            email:currentUser.email||'',
+            displayName:(currentUser.email||'').split('@')[0],
+            badges:[],
+            updated:firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+      }catch(e){ console.error('ensureUserStats', e) }
+    }
+
+    async function renderUserPoints(uid){
+      if(!uid) return;
+      try{
+        const doc = await db.collection('userStats').doc(uid).get();
+        const data = doc.exists ? doc.data() : {};
+        const pts = pointsToDisplay(data.points || 0);
+        const coins = data.coins || 0;
+        el('user-points').innerHTML = `⭐ ${pts} ұпай`;
+        el('user-coins').innerHTML = `${coins} монет`;
+      }catch(e){ console.error('renderUserPoints', e) }
+    }
+
+    /* ===== Leaderboard (small + full) ===== */
+    async function renderLeaderboard(){
+      try{
+        const lb = await db.collection('userStats').orderBy('points','desc').limit(5).get();
+        const node = el('leaderboard-list');
+        node.innerHTML = '';
+        let rank = 1;
+        lb.forEach(doc => {
+          const data = doc.data() || {};
+          const email = (data.email && String(data.email).trim()) || '';
+          const display = email || uidShort(doc.id);
+          const pts = pointsToDisplay(data.points || 0);
+          const div = document.createElement('div');
+          div.className = 'item';
+          const rankClass = rank <= 3 ? `rank-${rank}` : '';
+          const badges = (data.badges||[]).slice(0,1).map(b=>`<span class="badge gold" style="font-size:10px">${escapeHtml(b)}</span>`).join('');
+          div.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer" onclick="viewUserStats('${doc.id}')">
+              <div class="rank ${rankClass}">${rank}</div>
+              <div style="min-width:0;flex:1">
+                <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(display)}</div>
+                ${badges}
+              </div>
+            </div>
+            <div style="font-weight:700;color:var(--primary)">${pts}</div>
+          `;
+          node.appendChild(div);
+          rank++;
+        });
+      }catch(e){ console.error('renderLeaderboard error', e) }
+    }
+
+    async function openLeaderboardFull(){
+  const m = document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML = `
+    <div class="modal">
+      <h4>🏆 Толық рейтинг</h4>
+      <div id="leaderboard-full" style="max-height:60vh;overflow:auto"></div>
+      <div class="modal-footer"><button class="btn ghost" onclick="document.body.removeChild(this.closest('.modal-backdrop'))">Жабу</button></div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  const container = m.querySelector('#leaderboard-full');
+  container.innerHTML = '<div class="small">Жүктелуде...</div>';
+  try{
+    const snap = await db.collection('userStats').orderBy('points','desc').limit(50).get();
+    container.innerHTML = '';
+    let r=1;
+    snap.forEach(doc=>{
+      const d = doc.data()||{};
+      const row = document.createElement('div');
+      row.style.cssText = 'padding:12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-radius:8px;transition:all 0.2s;margin-bottom:4px';
+      row.onmouseenter = () => row.style.background = 'rgba(59,130,246,0.05)';
+      row.onmouseleave = () => row.style.background = 'transparent';
+      
+      const badges = (d.badges||[]).slice(0,2).map(b=>`<span class="badge" style="font-size:10px;margin-left:4px">${escapeHtml(b.split(' ')[0])}</span>`).join('');
+      
+      row.innerHTML = `
+        <div style="display:flex;gap:12px;align-items:center;flex:1;min-width:0">
+          <div class="rank ${r<=3?`rank-${r}`:''}" style="flex-shrink:0">${r}</div>
+          <div style="min-width:0;flex:1">
+            <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(d.email||uidShort(doc.id))}</div>
+            ${badges}
+          </div>
+        </div>
+        <div style="font-weight:700;color:var(--primary)">${pointsToDisplay(d.points||0)}</div>
+      `;
+      
+      row.onclick = () => {
+        m.remove();
+        viewUserStats(doc.id);
+      };
+      
+      container.appendChild(row);
+      r++;
+    });
+  }catch(e){ container.innerHTML = '<div class="error-msg">Қате</div>'; console.error(e) }
+}
+
+    async function viewUserStats(userId){
+  const m = document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML = `
+    <div class="modal">
+      <h4>📊 Статистика пользователя</h4>
+      <div id="user-stats-body" style="max-height:60vh;overflow:auto"></div>
+      <div class="modal-footer"><button class="btn ghost" onclick="document.body.removeChild(this.closest('.modal-backdrop'))">Жабу</button></div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  const container = m.querySelector('#user-stats-body');
+  container.innerHTML = '<div class="small">Жүктелуде...</div>';
+  try{
+    const userDoc = await db.collection('userStats').doc(userId).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+    const completedSnap = await db.collection('userStats').doc(userId).collection('completed').get();
+    const badges = (userData.badges || []).map(b => `<span class="badge gold">${escapeHtml(b)}</span>`).join(' ');
+    container.innerHTML = `
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="width:80px;height:80px;margin:0 auto 12px;border-radius:50%;background:var(--gradient-1);display:flex;align-items:center;justify-content:center;font-size:32px">${userData.currentAvatar || '👤'}</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px">${escapeHtml(userData.email || userId)}</div>
+        <div>${badges || '<span class="small muted-italic">Нет значков</span>'}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="card" style="text-align:center">
+          <div style="font-size:24px;font-weight:700;color:var(--primary)">${pointsToDisplay(userData.points || 0)}</div>
+          <div class="small">Ұпай</div>
+        </div>
+        <div class="card" style="text-align:center">
+          <div style="font-size:24px;font-weight:700;color:var(--warning)">${userData.coins || 0}</div>
+          <div class="small">Монет</div>
+        </div>
+        <div class="card" style="text-align:center">
+          <div style="font-size:24px;font-weight:700;color:var(--success)">${completedSnap.size}</div>
+          <div class="small">Выполнено</div>
+        </div>
+        <div class="card" style="text-align:center">
+          <div style="font-size:24px;font-weight:700;color:var(--info)">${(userData.badges || []).length}</div>
+          <div class="small">Значков</div>
+        </div>
+      </div>
+    `;
+  }catch(e){
+    container.innerHTML = '<div class="error-msg">Ошибка загрузки</div>';
+    console.error(e);
+  }
+}
+
+    /* ===== Filters & list render ===== */
     function parseSearchDate(raw){
       const dateMatch = raw.match(/^\s*(\d{1,2})[.\-\/]?(\d{1,2})[.\-\/]?(\d{2,4})\s*$/);
       if(!dateMatch) return null;
-      let day = Number(dateMatch[1]); let month = Number(dateMatch[2]); let year = Number(dateMatch[3]); if(year < 100) year += 2000; return new Date(year, month-1, day, 23,59,59,999);
+      let day = Number(dateMatch[1]);
+      let month = Number(dateMatch[2]);
+      let year = Number(dateMatch[3]);
+      if(year < 100) year += 2000;
+      return new Date(year, month-1, day, 23,59,59,999);
     }
+
     function renderFilters(){
       const raw = el('search').value.trim();
       const q = raw.toLowerCase();
-      const activeSub = document.querySelector('.subject-item.active')?.innerText || 'Барлығы';
+      const activeSub = document.querySelector('.subject-item.active')?.innerText?.replace(/[^\p{L}\s]/gu,'').trim() || 'Барлығы';
       const sort = el('sort').value;
       let items = lastSnapshot.slice();
+      
       if(activeSub && activeSub !== 'Барлығы'){
         items = items.filter(x => String(x.subject || '').toLowerCase() === activeSub.toLowerCase());
       }
+      if(sort === 'archive'){ items = items.filter(x => x.archived === true) }
+      
       const parsedDate = parseSearchDate(raw);
       if(parsedDate){
         items = items.filter(x => {
@@ -280,17 +716,12 @@
             const d = (x.deadline && typeof x.deadline.toDate === 'function') ? x.deadline.toDate() : new Date(x.deadline);
             if(isNaN(d)) return false;
             return d <= parsedDate;
-          }catch(e){ return false; }
+          }catch(e){ return false }
         });
-        if(sort === 'deadline') items.sort((a,b)=>{ const da = (a.deadline && typeof a.deadline.toDate === 'function') ? a.deadline.toDate() : (a.deadline?new Date(a.deadline):new Date(8640000000000000)); const db = (b.deadline && typeof b.deadline.toDate === 'function') ? b.deadline.toDate() : (b.deadline?new Date(b.deadline):new Date(8640000000000000)); return da - db; });
-        else if(sort === 'old') items.reverse();
-        el('count').innerText = items.length;
-        const list = el('homework-list'); list.innerHTML = '';
-        if(items.length===0){ list.innerHTML = '<div class="small" style="text-align:center;color:#718096">Әзірге тапсырма жоқ.</div>'; return; }
-        items.forEach(d=>{ const card=document.createElement('div'); card.className='hw'; card.innerHTML = `<div class="title">${escapeHtml(d.title||'Атауы жоқ')}</div><div class="desc">${escapeHtml(d.description||'')}</div><div class="meta"><div><span class="tag">${escapeHtml(d.subject||'Жалпы')}</span></div><div class="right"><div class="small">${escapeHtml(formatDate(d.deadline||d.createdAt||''))}</div><div class="author">${escapeHtml(d.authorEmail||'admin')}</div></div></div>`; const btn=makeCompleteButton(d.id,d); card.appendChild(btn); list.appendChild(card);});
-        return;
+      } else if(q){
+        items = items.filter(x => (((x.title||'') + ' ' + (x.description||'') + ' ' + (x.authorEmail||'')).toLowerCase().includes(q)));
       }
-      if(q){ items = items.filter(x => (((x.title||'') + ' ' + (x.description||'') + ' ' + (x.authorEmail||'')).toLowerCase().includes(q))); }
+
       if(sort === 'deadline'){
         items.sort((a,b)=>{
           const da = (a.deadline && typeof a.deadline.toDate === 'function') ? a.deadline.toDate() : (a.deadline?new Date(a.deadline):new Date(8640000000000000));
@@ -305,115 +736,1444 @@
         });
         if(sort === 'old') items.reverse();
       }
-      el('count').innerText = items.length; const list=el('homework-list'); list.innerHTML = '';
-      if(items.length===0){ list.innerHTML = '<div class="small" style="text-align:center;color:#718096">Әзірге тапсырма жоқ.</div>'; return; }
-      items.forEach(d=>{ const card=document.createElement('div'); card.className='hw'; card.innerHTML = `<div class="title">${escapeHtml(d.title||'Атауы жоқ')}</div><div class="desc">${escapeHtml(d.description||'')}</div><div class="meta"><div><span class="tag">${escapeHtml(d.subject||'Жалпы')}</span></div><div class="right"><div class="small">${escapeHtml(formatDate(d.deadline||d.createdAt||''))}</div><div class="author">${escapeHtml(d.authorEmail||'admin')}</div></div></div>`; const btn=makeCompleteButton(d.id,d); card.appendChild(btn); list.appendChild(card); });
+      
+      el('count').innerText = items.length;
+      renderList(items);
     }
+
+    function renderList(items){
+      const list = el('homework-list');
+      list.innerHTML = '';
+      if(items.length===0){
+        list.innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:16px">📭</div><div class="muted-italic">Тапсырма табылмады</div></div>';
+        return;
+      }
+      items.forEach(d=>{
+        const card=document.createElement('div');
+        card.className='hw';
+        
+        const archiveBadge = d.archived ? '<span class="badge warning">Архив</span>' : '';
+        const proofBadge = (d.requiresProof && !d.archived) ? '<span class="badge" style="background:rgba(245,158,11,0.1);color:var(--warning)">Доказ керек</span>' : '';
+        
+        card.innerHTML = `
+          <div class="hw-header">
+            <div style="flex:1;min-width:0">
+              <div class="title">${escapeHtml(d.title||'Атауы жоқ')}</div>
+              <div class="meta-info">
+                <span class="badge">${escapeHtml(d.subject||'')}</span>
+                ${archiveBadge}
+                ${proofBadge}
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div class="small" style="font-weight:600">📅 ${escapeHtml(formatDate(d.deadline||d.createdAt||''))}</div>
+              <div class="small">от ${escapeHtml(d.authorEmail||'admin')}</div>
+            </div>
+          </div>
+          ${d.description ? `<div class="desc">${escapeHtml(d.description)}</div>` : ''}
+          <div class="actions" id="actions-${d.id}">
+            <div class="small muted-italic" id="events-${d.id}"></div>
+          </div>
+        `;
+        
+        const actionsDiv = card.querySelector(`#actions-${d.id}`);
+        const btns = document.createElement('div');
+        btns.style.display = 'flex';
+        btns.style.gap = '8px';
+        btns.style.flexWrap = 'wrap';
+        
+        const completeBtn = makeCompleteButton(d.id,d);
+        btns.appendChild(completeBtn);
+        
+        
+        if(currentIsAdmin){
+          const edit = document.createElement('button');
+          edit.className='btn ghost';
+          edit.innerText='✏️ Өңдеу';
+          edit.onclick = ()=>{ editHomework(d) };
+          const del = document.createElement('button');
+          del.className='btn danger';
+          del.innerText='🗑️ Жою';
+          del.onclick = ()=>{ if(confirm('Жоюға сенімдісіз бе?')) db.collection('homework').doc(d.id).delete() };
+          btns.appendChild(edit);
+          btns.appendChild(del);
+        }
+        
+        actionsDiv.appendChild(btns);
+        list.appendChild(card);
+        injectEventIndicator(d.id, d.deadline);
+      });
+    }
+    async function submitProof(){
+  const input = document.querySelector('#proof-file');
+  const msgEl = document.querySelector('#proof-msg');
+  const files = input?.files ? Array.from(input.files) : [];
+  if(!files.length){ msgEl.innerHTML='<span class="error-msg">Выберите файл(ы)</span>'; return; }
+  if(!pendingProofTarget || !pendingProofTarget.hwId){ msgEl.innerHTML='<span class="error-msg">Цель не определена</span>'; return; }
+  if(!currentUser){ msgEl.innerHTML='<span class="error-msg">Нужно войти</span>'; return; }
+
+  // базовые проверки: максимум 8 файлов, каждый до 8MB (поднимите если нужно)
+  if(files.length > 8){ msgEl.innerHTML = '<span class="error-msg">Макс 8 файлов</span>'; return; }
+  const MAX_SIZE = 8 * 1024 * 1024;
+  const allowed = ['image/jpeg','image/png','image/webp','application/pdf','image/jpg','image/heic','image/heif'];
+  for(const f of files){
+    if(!allowed.includes(f.type)) { msgEl.innerHTML = '<span class="error-msg">Недопустимый формат (JPG/PNG/WEBP/PDF)</span>'; return; }
+    if(f.size > MAX_SIZE){ msgEl.innerHTML = `<span class="error-msg">Файл ${f.name} слишком большой (макс ${MAX_SIZE/1024/1024}MB)</span>`; return; }
+  }
+  
+
+  msgEl.innerHTML = '<span class="small">Загрузка...</span>';
+  const hwId = pendingProofTarget.hwId;
+  try{
+    // --- 1) загрузка всех файлов в Cloudinary (или Firebase Storage) параллельно ---
+    const uploadPromises = files.map((f, idx)=>{
+      const url = `https://api.cloudinary.com/v1_1/${encodeURIComponent(CLOUDINARY_CLOUD_NAME)}/upload`;
+      const fd = new FormData();
+      fd.append('file', f);
+      fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      fd.append('context', `hwId=${hwId}&user=${currentUser.uid}`);
+      return fetch(url, { method:'POST', body: fd }).then(async res=>{
+        if(!res.ok){ const t = await res.text().catch(()=>null); throw new Error('Cloudinary error: '+(t||res.status)); }
+        const j = await res.json();
+        return { url: j.secure_url || j.url, id: j.public_id || `${Date.now()}_${f.name}` };
+      });
+    });
+
+    const uploads = await Promise.all(uploadPromises);
+    const urls = uploads.map(u=>u.url);
+    const ids  = uploads.map(u=>u.id);
+
+    // --- 2) атомарная проверка + начисление: только если ещё нет completion ---
+    const uid = currentUser.uid;
+    const statRef = db.collection('userStats').doc(uid);
+    const compRef = statRef.collection('completed').doc(hwId);
+
+    const awardPoints = 1;
+    const awardCoins  = 5;
+
+    let awarded = false;
+    await db.runTransaction(async tx => {
+      const compSnap = await tx.get(compRef);
+      if(compSnap.exists){
+        // уже есть completion — не начисляем повторно
+        awarded = false;
+        // обновим в документе completed поле proofUrls: добавим новые ссылки (merge)
+        tx.set(compRef, {
+          proofUrls: firebase.firestore.FieldValue.arrayUnion(...urls),
+          proofIds: firebase.firestore.FieldValue.arrayUnion(...ids),
+          updatedProofAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } else {
+        // создаём completion с 1 баллом и сохраняем proofUrls
+        tx.set(compRef, {
+          hwId,
+          title: '',
+          completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          points: awardPoints,
+          proofUrls: urls,
+          proofIds: ids
+        }, { merge: true });
+
+        // увеличиваем агрегаты пользователя: +1 point и +5 coins
+        tx.set(statRef, {
+          points: firebase.firestore.FieldValue.increment(awardPoints),
+          coins: firebase.firestore.FieldValue.increment(awardCoins),
+          email: currentUser.email || '',
+          displayName: (currentUser.email||'').split('@')[0],
+          updated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        awarded = true;
+      }
+    });
+
+    // --- 3) Сохраняем отдельную запись submission для модерации / просмотра ---
+    await db.collection('proofs').doc(hwId).collection('submissions').add({
+      uid, displayName: currentUser.displayName || (currentUser.email||'').split('@')[0],
+      imageUrls: urls, imageIds: ids,
+      message: document.querySelector('#proof-text')?.value || '',
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // --- 4) UI refresh ---
+    await loadUserCompleted(uid);
+    await renderUserPoints(uid);
+    renderLeaderboard();
+    msgEl.innerHTML = `<span class="success-msg">✓ Загружено${awarded ? ', +1 балл и +5 монет' : ''}</span>`;
+    setTimeout(()=>closeProofModal(), 1200);
+  }catch(err){
+    console.error('submitProof', err);
+    msgEl.innerHTML = `<span class="error-msg">Ошибка: ${err.message||err}</span>`;
+  }
+}
+
     function makeCompleteButton(hwId, hwData){
-      const btn=document.createElement('button'); btn.className='complete-btn'; btn.type='button';
-      const done = completedMap && completedMap[hwId];
-      if(done) { btn.classList.add('done'); btn.innerText='Орындадым ✓'; } else { btn.innerText='Орындадым'; }
-      btn.onclick = async ()=>{
-        if(!currentUser){ alert('Кіру қажет'); return; }
-        btn.disabled = true;
-        try{
-          const uid=currentUser.uid; const statRef=db.collection('userStats').doc(uid); const compRef=statRef.collection('completed').doc(hwId);
-          const compDoc = await compRef.get();
-          if(compDoc.exists){
-            await db.runTransaction(async tx=>{
-              tx.delete(compRef);
-              tx.set(statRef, {points: firebase.firestore.FieldValue.increment(-1), updated: firebase.firestore.FieldValue.serverTimestamp()}, {merge:true});
-            });
-            delete completedMap[hwId]; btn.classList.remove('done'); btn.innerText='Орындадым';
-          } else {
-            await db.runTransaction(async tx=>{
-              tx.set(compRef, {hwId:hwId,title:hwData.title||'',subject:hwData.subject||'',deadline:hwData.deadline||'',completedAt:firebase.firestore.FieldValue.serverTimestamp(),points:1});
-              tx.set(statRef, {points: firebase.firestore.FieldValue.increment(1), email: currentUser.email||'', displayName: currentUser.email||'' , updated: firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-            });
-            completedMap[hwId] = {hwId,title:hwData.title||'',subject:hwData.subject||'',deadline:hwData.deadline||'',points:1}; btn.classList.add('done'); btn.innerText='Орындадым ✓';
-          }
-          await renderUserPoints(currentUser.uid); renderLeaderboard();
-        }catch(e){ console.error('complete toggle error', e); alert('Қате: '+(e.message||e)); } finally{ btn.disabled=false; }
-      };
-      return btn;
+  const btn = document.createElement('button');
+  btn.className = 'complete-btn';
+  if (!hwData) hwData = {};
+  const done = completedMap && completedMap[hwId];
+  if (done){
+    btn.classList.add('done');
+    btn.innerHTML = `✓ Орындадым (${pointsToDisplay(done.points||0)} ұпай)`;
+  } else {
+    btn.innerText = '✓ Орындадым';
+  }
+
+  btn.onclick = async () => {
+    if (!currentUser) { alert('Кіру қажет'); return; }
+    btn.disabled = true;
+
+    try {
+      const uid = currentUser.uid;
+      const statRef = db.collection('userStats').doc(uid);
+      const compRef = statRef.collection('completed').doc(hwId);
+
+      // Получаем актуальные данные задания (не внутри транзакции — нужно знать, нужен ли proof)
+      const hwDoc = await db.collection('homework').doc(hwId).get();
+      const hw = hwDoc.exists ? hwDoc.data() : (hwData || {});
+      const archived = !!hw.archived;
+      const requiresProof = !!hw.requiresProof && !archived;
+
+      // Если требуется доказательство — откроем модал и не делаем транзакцию
+      if (requiresProof) {
+        pendingProofTarget = { hwId };
+        // убедись, что openProofModal глобальна
+        if (typeof openProofModal === 'function') openProofModal(hwId);
+        else alert('Функция открытия модалки доказательства не найдена');
+        btn.disabled = false;
+        return;
+      }
+
+      // Количество очков за это задание
+      const pts = archived ? 0.5 : 1;
+      const coinsToAdd = 5;
+
+      // Транзакция — атомарно добавляем/удаляем completion и обновляем агрегаты пользователя
+      const txResult = await db.runTransaction(async tx => {
+        const compSnap = await tx.get(compRef);
+        // Если запись есть — удаляем её и уменьшаем очки
+        if (compSnap.exists) {
+          const prevPoints = compSnap.data().points || pts;
+          // удаляем completion и уменьшаем points (через set + merge, чтобы не упасть при отсутствии doc)
+          tx.delete(compRef);
+          tx.set(statRef, {
+            points: firebase.firestore.FieldValue.increment(-prevPoints),
+            updated: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          return { action: 'removed', points: prevPoints };
+        } else {
+          // добавляем completion и увеличиваем points
+          tx.set(compRef, {
+            hwId: hwId,
+            title: hw.title || '',
+            subject: hw.subject || '',
+            deadline: hw.deadline || '',
+            completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            points: pts
+          }, { merge: true });
+
+          tx.set(statRef, {
+            points: firebase.firestore.FieldValue.increment(pts),
+            coins: firebase.firestore.FieldValue.increment(coinsToAdd),
+            email: currentUser.email || '',
+            displayName: (currentUser.email || '').split('@')[0],
+            updated: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+
+          return { action: 'added', points: pts, title: hw.title || '' };
+        }
+      }); // end transaction
+
+      // После успешной транзакции — обновляем локальное состояние UI
+      if (txResult.action === 'removed') {
+        delete completedMap[hwId];
+        btn.classList.remove('done');
+        btn.innerText = '✓ Орындадым';
+      } else if (txResult.action === 'added') {
+        completedMap[hwId] = { hwId, title: txResult.title || (hw.title||''), points: txResult.points };
+        btn.classList.add('done');
+        btn.innerHTML = `✓ Орындадым (${pointsToDisplay(txResult.points||0)} ұпай)`;
+        // обновляем виджеты
+        await renderUserPoints(currentUser.uid).catch(()=>{});
+        renderLeaderboard();
+      }
+
+    } catch (e) {
+      console.error('complete toggle error', e);
+      alert('Қате: ' + (e.message || e));
+    } finally {
+      btn.disabled = false;
     }
-    async function register(){ el('auth-msg').innerText=''; const email=el('email').value.trim(); const password=el('password').value; if(!email||password.length<6){el('auth-msg').innerText='Email мен 6 таңбадан кем емес пароль енгізіңіз.';return} try{ const uc = await auth.createUserWithEmailAndPassword(email,password); await db.collection('users').doc(uc.user.uid).set({email:email,created:Date.now()}); await db.collection('userStats').doc(uc.user.uid).set({points:0,email:email,displayName:email.split('@')[0]},{merge:true}); }catch(err){ console.error('register error', err); el('auth-msg').innerText = err.message }
-    }
-    async function login(){ el('auth-msg').innerText=''; const email=el('email').value.trim(); const password=el('password').value; if(!email||!password){el('auth-msg').innerText='Email мен құпия сөзді енгізіңіз.';return} try{ await auth.signInWithEmailAndPassword(email,password); }catch(err){ console.error('login error', err); el('auth-msg').innerText = err.message } }
-    function logout(){ auth.signOut(); }
-    async function addHomework(){ if(!currentUser){alert('Кіру қажет');return} if(!currentIsAdmin){alert('Тек әкімші қоса алады');return} const title=el('hw-title').value.trim(); const desc=el('hw-desc').value.trim(); const deadline=el('hw-deadline').value||''; const subject=el('hw-subject').value||''; if(!title){el('add-msg').innerText='Тақырыпты енгізіңіз.';return} el('add-msg').innerText='Сақталып жатыр...'; try{ await db.collection('homework').add({title,description:desc,deadline,subject,authorUid:currentUser.uid,authorEmail:currentUser.email||'',createdAt:firebase.firestore.FieldValue.serverTimestamp()}); el('add-msg').innerText='Қосылды!'; el('hw-title').value=''; el('hw-desc').value=''; el('hw-deadline').value=''; setTimeout(()=>el('add-msg').innerText='',1500); }catch(e){ console.error('addHomework error', e); el('add-msg').innerText='Қате' } }
-    function reloadOnce(){ if(hwUnsubscribe){ hwUnsubscribe(); hwUnsubscribe=null } subscribeHomeworks(); }
-    function toggleAdd(){ el('add-card').classList.toggle('hidden') }
-    function clearFilters(){ el('search').value=''; document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active')); const first = document.querySelector('#subject-list .subject-item'); if(first) first.classList.add('active'); el('sort').value='new'; renderFilters() }
-    function showAuth(){ el('auth').scrollIntoView({behavior:'smooth'}) }
-    async function backfillUserStatsFromUsers({ batchSize = 400 } = {}) {
-  if (!currentIsAdmin) {
-    alert('Только админ может запускать backfill в браузере.');
+  };
+
+  return btn;
+}
+
+function openProofModal(hwId){
+  if(!currentUser){ alert('Требуется вход в систему'); return; }
+  pendingProofTarget = { hwId };
+
+  // если модаль уже есть — обновим hwId и покажем снова
+  const existing = document.getElementById('modal-proof-backdrop');
+  if(existing){
+    existing.querySelector('#proof-hw-id').innerText = hwId;
+    existing.classList.remove('hidden');
     return;
   }
-  const statsRef = db.collection('userStats');
-  try {
-    const snap = await statsRef.get();
-    if (!snap || snap.empty) {
-      alert('userStats пуста.');
-      return;
-    }
-    let batch = db.batch();
-    let processed = 0;
-    let updated = 0;
-    const missing = [];
-    for (const doc of snap.docs) {
-      processed++;
-      const uid = doc.id;
-      const sdata = doc.data() || {};
-      if (sdata.email && String(sdata.email).trim()) continue;
-      let email = null;
-      let displayName = null;
-      try {
-        const udoc = await db.collection('users').doc(uid).get();
-        if (udoc.exists) {
-          const udata = udoc.data() || {};
-          if (udata.email) email = String(udata.email).trim();
-          if (udata.displayName) displayName = String(udata.displayName).trim();
-        }
-      } catch (e) {
-        console.warn('users fetch fail for', uid, e && e.message ? e.message : e);
-      }
-      if (email) {
-        const ref = statsRef.doc(uid);
-        const payload = { email, displayName: displayName || (email.split ? email.split('@')[0] : '') };
-        batch.set(ref, payload, { merge: true });
-        updated++;
-      } else {
-        missing.push(uid);
-      }
-      if (processed % batchSize === 0) {
-        await batch.commit();
-        batch = db.batch();
-        console.log(`Committed batch at ${processed} items`);
-      }
-    }
-    await batch.commit();
 
-    const msg = `Backfill completed. Processed: ${processed}. Updated: ${updated}. Missing: ${missing.length}.`;
-    console.log(msg);
-    if (missing.length) {
-      console.warn('UIDs without user record or permission to read them (sample):', missing.slice(0,50));
-      alert(msg + `\nUID без user (проверь вручную): ${missing.slice(0,20).join(', ')}`);
-    } else {
-      alert(msg + '\nВсе userStats теперь содержат email.');
+  const m = document.createElement('div');
+  m.id = 'modal-proof-backdrop';
+  m.className = 'modal-backdrop';
+  m.innerHTML = `
+    <div class="modal">
+      <h4>📎 Отправить доказательство</h4>
+      <div style="margin-bottom:12px" class="small">Задание: <strong id="proof-hw-id">${hwId}</strong></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input id="proof-file" type="file" accept="image/*,application/pdf" multiple />
+        <textarea id="proof-text" placeholder="Комментарий (необязательно)" style="min-height:80px;padding:8px;border-radius:8px"></textarea>
+        <div id="proof-msg" style="margin-top:8px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn ghost" id="proof-cancel">Отмена</button>
+        <button class="btn" id="proof-send">Отправить</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+
+  m.querySelector('#proof-cancel').onclick = ()=>{ closeProofModal(); };
+  m.querySelector('#proof-send').onclick = async ()=>{
+    // простая защита от двойных кликов
+    const btn = m.querySelector('#proof-send');
+    btn.disabled = true;
+    try{ await submitProof(); }catch(e){ console.error(e); }
+    btn.disabled = false;
+  };
+}
+
+function closeProofModal(){
+  pendingProofTarget = null;
+  const el = document.getElementById('modal-proof-backdrop');
+  if(el) el.remove();
+}
+
+    /* ===== Edit / Add homework ===== */
+    function editHomework(hw){
+      if(!currentIsAdmin){ alert('Тек админ өңдей алады'); return }
+      const m = document.createElement('div');
+      m.className='modal-backdrop';
+      const deadlineValue = hw.deadline ? (typeof hw.deadline.toDate==='function'? new Date(hw.deadline.toDate()).toISOString().slice(0,10): new Date(hw.deadline).toISOString().slice(0,10)) : '';
+      m.innerHTML = `
+        <div class="modal">
+          <h4>✏️ Өңдеу</h4>
+          <div style="display:flex;flex-direction:column;gap:12px;margin:16px 0">
+            <input id="e-title" value="${escapeHtml(hw.title||'')}" placeholder="Тақырып" />
+            <select id="e-subject">
+              ${subjects.map(s=>`<option ${s===hw.subject?'selected':''}>${escapeHtml(s)}</option>`).join('')}
+            </select>
+            <input id="e-dead" type="date" value="${deadlineValue}" />
+            <label style="display:flex;align-items:center;gap:8px">
+              <input id="e-requires-proof" type="checkbox" ${hw.requiresProof ? 'checked' : ''} style="width:auto" />
+              <span>Құжат талап етіледі</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px">
+              <input id="e-archived" type="checkbox" ${hw.archived ? 'checked' : ''} style="width:auto" />
+              <span>Архив</span>
+            </label>
+            <textarea id="e-desc" placeholder="Сипаттама">${escapeHtml(hw.description||'')}</textarea>
+          </div>
+          <div class="modal-footer">
+            <button class="btn ghost" onclick="this.closest('.modal-backdrop').remove()">Болдырмау</button>
+            <button class="btn" onclick="saveEdit('${hw.id}')">💾 Сақтау</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(m);
     }
-    if (typeof renderLeaderboard === 'function') renderLeaderboard();
-  } catch (err) {
-    console.error('Backfill failed:', err);
-    alert('Backfill қатесі: ' + (err && err.message ? err.message : err));
+
+    async function saveEdit(hwId){
+      const vtitle = document.querySelector('#e-title').value.trim();
+      const vsub = document.querySelector('#e-subject').value;
+      const vdead = document.querySelector('#e-dead').value || '';
+      const vreq = document.querySelector('#e-requires-proof').checked;
+      const varch = document.querySelector('#e-archived').checked;
+      const vdesc = document.querySelector('#e-desc').value;
+      try{
+        await db.collection('homework').doc(hwId).set({
+          title:vtitle,
+          subject:vsub,
+          deadline:vdead,
+          requiresProof:vreq,
+          archived:varch,
+          description:vdesc,
+          updated:firebase.firestore.FieldValue.serverTimestamp()
+        },{merge:true});
+        document.querySelector('.modal-backdrop')?.remove();
+      }catch(e){ alert('Қате: '+e.message) }
+    }
+
+    async function addHomework(){
+      if(!currentUser){ alert('Кіру қажет'); return }
+      if(!currentIsAdmin){ alert('Тек әкімші қоса алады'); return }
+      const title = el('hw-title').value.trim();
+      const desc = el('hw-desc').value.trim();
+      const deadline = el('hw-deadline').value||'';
+      const subject = el('hw-subject').value||'';
+      const requiresProof = !!el('hw-requires-proof').checked;
+      const archived = !!el('hw-archived').checked;
+      if(!title || !subject || !deadline){
+        el('add-msg').innerHTML='<span class="error-msg">Барлық қажетті өрістерді толтырыңыз</span>';
+        return;
+      }
+      el('add-msg').innerHTML='<span class="small">Сақталып жатыр...</span>';
+      try{
+        await db.collection('homework').add({
+          title,
+          description:desc,
+          deadline,
+          subject,
+          authorUid:currentUser.uid,
+          authorEmail:currentUser.email||'',
+          requiresProof,
+          archived,
+          createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        el('add-msg').innerHTML='<span class="success-msg">✓ Қосылды!</span>';
+        el('hw-title').value='';
+        el('hw-desc').value='';
+        el('hw-deadline').value='';
+        el('hw-subject').value='';
+        el('hw-requires-proof').checked=false;
+        el('hw-archived').checked=false;
+        setTimeout(()=>el('add-msg').innerText='',2000);
+      }catch(e){
+        console.error('addHomework error', e);
+        el('add-msg').innerHTML='<span class="error-msg">Қате: '+e.message+'</span>';
+      }
+    }
+
+    async function injectEventIndicator(hwId, deadline){
+      try{
+        const container = document.querySelector(`#events-${hwId}`);
+        if(!container) return;
+        let dstr = '';
+        if(!deadline) return;
+        if(typeof deadline.toDate === 'function') dstr = new Date(deadline.toDate()).toISOString().slice(0,10);
+        else dstr = new Date(deadline).toISOString().slice(0,10);
+        const snap = await db.collection('events').where('date','==',dstr).get();
+        if(snap.empty) return;
+        const types = {};
+        snap.forEach(s=>{ const ev = s.data(); types[ev.type] = (types[ev.type]||0)+1 });
+        const parts = Object.keys(types).map(t=>`${t}: ${types[t]}`).join(', ');
+        container.innerHTML = `⚠️ Бүгінгі/жақын: ${parts}`;
+        container.style.color = 'var(--warning)';
+        container.style.fontWeight = '600';
+      }catch(e){ console.error('injectEventIndicator',e) }
+    }
+
+    /* ===== Events modal ===== */
+    function openEvents(){
+      const m = document.createElement('div');
+      m.className='modal-backdrop';
+      m.innerHTML = `
+        <div class="modal">
+          <h4>📝 СОР / СОЧ оқиғалар</h4>
+          <div id="events-list" style="max-height:40vh;overflow:auto;margin:16px 0"></div>
+          ${currentIsAdmin ? `
+            <div class="divider"></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <input id="ev-title" placeholder="Атауы (мыс. СОР математика)" />
+              <input id="ev-date" type="date" />
+              <select id="ev-type">
+                <option>СОР</option>
+                <option>СОЧ</option>
+              </select>
+              <button class="btn" id="ev-add">➕ Қосу</button>
+            </div>
+          ` : ''}
+          <div class="modal-footer">
+            <button class="btn ghost" onclick="this.closest('.modal-backdrop').remove()">Жабу</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(m);
+      if(currentIsAdmin){
+        m.querySelector('#ev-add').onclick = async ()=>{
+          const t = m.querySelector('#ev-title').value.trim();
+          const d = m.querySelector('#ev-date').value;
+          const tp = m.querySelector('#ev-type').value;
+          if(!t||!d){ alert('Толтырыңыз'); return }
+          await db.collection('events').add({
+            title:t,
+            date:d,
+            type:tp,
+            createdAt:firebase.firestore.FieldValue.serverTimestamp()
+          });
+          m.querySelector('#ev-title').value='';
+          m.querySelector('#ev-date').value='';
+          loadEventsList(m.querySelector('#events-list'));
+        };
+      }
+      loadEventsList(m.querySelector('#events-list'));
+    }
+
+    async function loadEventsList(container){
+      container.innerHTML = '<div class="small">Жүктелуде...</div>';
+      try{
+        const snap = await db.collection('events').orderBy('date','asc').get();
+        if(snap.empty){
+          container.innerHTML = '<div class="small muted-italic">Оқиға жоқ</div>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(doc=>{
+          const d = doc.data();
+          const row = document.createElement('div');
+          row.style.padding='12px';
+          row.style.borderBottom='1px solid var(--border)';
+          row.style.display='flex';
+          row.style.justifyContent='space-between';
+          row.style.alignItems='center';
+          const typeClass = d.type==='СОР' ? 'warning' : 'info';
+          row.innerHTML = `
+            <div>
+              <div style="font-weight:600">${escapeHtml(d.title||'')}</div>
+              <div class="small">📅 ${escapeHtml(d.date||'')}</div>
+            </div>
+            <span class="badge ${typeClass}">${escapeHtml(d.type||'')}</span>
+          `;
+          container.appendChild(row);
+        });
+      }catch(e){
+        container.innerHTML = '<div class="error-msg">Қате</div>';
+        console.error(e);
+      }
+    }
+
+    /* ===== Seasonal snow ===== */
+    function applyAutoWinter(){
+      const now = new Date();
+      const month = now.getMonth()+1;
+      if([12,1,2].includes(month)) enableWinter(true);
+      else enableWinter(false);
+    }
+
+    function enableWinter(on){
+      const layer = el('snow-layer');
+      if(on){
+        layer.classList.remove('hidden');
+      } else {
+        layer.classList.add('hidden');
+        layer.innerHTML='';
+      }
+    }
+    document.documentElement.classList.add('dark');
+    /* ===== Store (cases) ===== */
+    async function openStore(){
+  const m = document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML = `
+    <div class="modal" style="max-width:900px">
+      <h4>🎁 Магазин кейсов</h4>
+      <div class="small muted-italic" style="margin-bottom:16px">Открывай кейсы и получай уникальные призы!</div>
+      <div id="store-list" style="max-height:60vh;overflow:auto"></div>
+      <div class="modal-footer">
+        <button class="btn ghost" onclick="this.closest('.modal-backdrop').remove()">Жабу</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  loadStore(m.querySelector('#store-list'), m);
+}
+
+    async function loadStore(container, modalRoot){
+  container.innerHTML = '<div class="small">Жүктелуде...</div>';
+  
+  const cases = [
+    {
+      id: 'starter_case',
+      title: '🎁 Стартовый кейс',
+      price: 5,
+      rarity: 'common',
+      items: [
+        {type: 'badge', id: '🌟 Новичок', label: 'Новичок', rarity: 'common'},
+        {type: 'badge', id: '📚 Ученик', label: 'Ученик', rarity: 'common'},
+        {type: 'badge', id: '✏️ Начинающий', label: 'Начинающий', rarity: 'common'},
+        {type: 'badge', id: '🎒 Школьник', label: 'Школьник', rarity: 'common'},
+        {type: 'badge', id: '📖 Читатель', label: 'Читатель', rarity: 'common'},
+        {type: 'booster', id: 'points_x1.2', label: '+20% ұпай (1 день)', duration: 86400000, multiplier: 1.2, rarity: 'common'},
+        {type: 'booster', id: 'points_x1.3', label: '+30% ұпай (12 часов)', duration: 43200000, multiplier: 1.3, rarity: 'rare'},
+        {type: 'avatar', id: '🎓', label: 'Аватар: Выпускник', rarity: 'common'},
+        {type: 'avatar', id: '📝', label: 'Аватар: Блокнот', rarity: 'common'},
+        {type: 'avatar', id: '🎯', label: 'Аватар: Цель', rarity: 'common'},
+      ]
+    },
+    {
+      id: 'silver_case',
+      title: '🥈 Серебряный кейс',
+      price: 35,
+      rarity: 'rare',
+      items: [
+        {type: 'badge', id: '⚡ Активный', label: 'Активный', rarity: 'rare'},
+        {type: 'badge', id: '🔥 Целеустремлённый', label: 'Целеустремлённый', rarity: 'rare'},
+        {type: 'badge', id: '💪 Упорный', label: 'Упорный', rarity: 'rare'},
+        {type: 'badge', id: '🎯 Точный', label: 'Точный', rarity: 'rare'},
+        {type: 'badge', id: '🌟 Звезда', label: 'Звезда', rarity: 'rare'},
+        {type: 'badge', id: '📈 Прогрессирующий', label: 'Прогрессирующий', rarity: 'rare'},
+        {type: 'theme', id: 'theme-purple', label: 'Тема: Фиолетовая', rarity: 'rare'},
+        {type: 'theme', id: 'theme-green', label: 'Тема: Зелёная', rarity: 'rare'},
+        {type: 'booster', id: 'points_x1.5', label: '+50% ұпай (1 день)', duration: 86400000, multiplier: 1.5, rarity: 'rare'},
+        {type: 'booster', id: 'auto_complete', label: 'Авто-сдача (3 задания)', uses: 3, rarity: 'epic'},
+        {type: 'avatar', id: '🏆', label: 'Аватар: Трофей', rarity: 'rare'},
+        {type: 'avatar', id: '⭐', label: 'Аватар: Звезда', rarity: 'rare'},
+        {type: 'avatar', id: '💎', label: 'Аватар: Алмаз', rarity: 'rare'},
+      ]
+    },
+    {
+      id: 'gold_case',
+      title: '🥇 Золотой кейс',
+      price: 75,
+      rarity: 'epic',
+      items: [
+        {type: 'badge', id: '👑 VIP', label: 'VIP', rarity: 'epic'},
+        {type: 'badge', id: '💎 Элита', label: 'Элита', rarity: 'epic'},
+        {type: 'badge', id: '🔮 Мудрец', label: 'Мудрец', rarity: 'epic'},
+        {type: 'badge', id: '🎖️ Отличник', label: 'Отличник', rarity: 'epic'},
+        {type: 'badge', id: '🏅 Чемпион', label: 'Чемпион', rarity: 'epic'},
+        {type: 'badge', id: '🌈 Радужный', label: 'Радужный', rarity: 'epic'},
+        {type: 'theme', id: 'theme-black', label: 'Тема: Чёрная', rarity: 'epic'},
+        {type: 'theme', id: 'theme-red', label: 'Тема: Красная', rarity: 'epic'},
+        {type: 'theme', id: 'theme-orange', label: 'Тема: Оранжевая', rarity: 'epic'},
+        {type: 'booster', id: 'points_x2', label: '2x ұпай (2 дня)', duration: 172800000, multiplier: 2, rarity: 'epic'},
+        {type: 'booster', id: 'deadline_extend', label: '+3 дня к дедлайнам', uses: 5, rarity: 'epic'},
+        {type: 'avatar', id: '🔥', label: 'Аватар: Огонь', rarity: 'epic'},
+        {type: 'avatar', id: '⚡', label: 'Аватар: Молния', rarity: 'epic'},
+        {type: 'avatar', id: '👑', label: 'Аватар: Корона', rarity: 'epic'},
+      ]
+    },
+    {
+      id: 'diamond_case',
+      title: '💎 Алмазный кейс',
+      price: 150,
+      rarity: 'legendary',
+      items: [
+        {type: 'badge', id: '🌌 Легенда', label: 'Легенда', rarity: 'legendary'},
+        {type: 'badge', id: '🦄 Мифический', label: 'Мифический', rarity: 'legendary'},
+        {type: 'badge', id: '🎆 Божественный', label: 'Божественный', rarity: 'legendary'},
+        {type: 'badge', id: '💫 Космический', label: 'Космический', rarity: 'legendary'},
+        {type: 'badge', id: '🌠 Звёздный', label: 'Звёздный', rarity: 'legendary'},
+        {type: 'theme', id: 'theme-pink', label: 'Тема: Розовая', rarity: 'legendary'},
+        {type: 'theme', id: 'theme-cyan', label: 'Тема: Циан', rarity: 'legendary'},
+        {type: 'theme', id: 'theme-gold', label: 'Тема: Золотая', rarity: 'legendary'},
+        {type: 'booster', id: 'points_x3', label: '3x ұпай (7 дней)', duration: 604800000, multiplier: 3, rarity: 'legendary'},
+        {type: 'booster', id: 'auto_archive', label: 'Авто-архив (10 заданий)', uses: 10, rarity: 'legendary'},
+        {type: 'avatar', id: '🌟', label: 'Аватар: Сияние', rarity: 'legendary'},
+        {type: 'avatar', id: '🎭', label: 'Аватар: Маска', rarity: 'legendary'},
+        {type: 'avatar', id: '🦋', label: 'Аватар: Бабочка', rarity: 'legendary'},
+      ]
+    },
+    {
+      id: 'study_case',
+      title: '📚 Учебный кейс',
+      price: 25,
+      rarity: 'common',
+      items: [
+        {type: 'badge', id: '📐 Математик', label: 'Математик', rarity: 'rare'},
+        {type: 'badge', id: '🔬 Химик', label: 'Химик', rarity: 'rare'},
+        {type: 'badge', id: '⚛️ Физик', label: 'Физик', rarity: 'rare'},
+        {type: 'badge', id: '🌍 Географ', label: 'Географ', rarity: 'rare'},
+        {type: 'badge', id: '💻 Программист', label: 'Программист', rarity: 'rare'},
+        {type: 'badge', id: '📜 Историк', label: 'Историк', rarity: 'rare'},
+        {type: 'booster', id: 'subject_bonus', label: '+50% по одному предмету', uses: 3, rarity: 'rare'},
+        {type: 'avatar', id: '🧪', label: 'Аватар: Пробирка', rarity: 'common'},
+        {type: 'avatar', id: '🔭', label: 'Аватар: Телескоп', rarity: 'rare'},
+        {type: 'avatar', id: '🧬', label: 'Аватар: ДНК', rarity: 'rare'},
+      ]
+    },
+    {
+      id: 'creative_case',
+      title: '🎨 Творческий кейс',
+      price: 40,
+      rarity: 'rare',
+      items: [
+        {type: 'badge', id: '🎨 Художник', label: 'Художник', rarity: 'rare'},
+        {type: 'badge', id: '🎵 Музыкант', label: 'Музыкант', rarity: 'rare'},
+        {type: 'badge', id: '✍️ Писатель', label: 'Писатель', rarity: 'rare'},
+        {type: 'badge', id: '🎭 Актёр', label: 'Актёр', rarity: 'rare'},
+        {type: 'badge', id: '📸 Фотограф', label: 'Фотограф', rarity: 'rare'},
+        {type: 'theme', id: 'theme-rainbow', label: 'Тема: Радуга', rarity: 'epic'},
+        {type: 'avatar', id: '🎨', label: 'Аватар: Палитра', rarity: 'rare'},
+        {type: 'avatar', id: '🎬', label: 'Аватар: Кино', rarity: 'rare'},
+        {type: 'avatar', id: '🎪', label: 'Аватар: Цирк', rarity: 'epic'},
+        {type: 'booster', id: 'creative_boost', label: '+100% за творческие предметы', duration: 86400000, rarity: 'rare'},
+      ]
+    },
+    {
+      id: 'speed_case',
+      title: '⚡ Скоростной кейс',
+      price: 50,
+      rarity: 'rare',
+      items: [
+        {type: 'badge', id: '⚡ Молниеносный', label: 'Молниеносный', rarity: 'epic'},
+        {type: 'badge', id: '🚀 Ракета', label: 'Ракета', rarity: 'epic'},
+        {type: 'badge', id: '💨 Ветер', label: 'Ветер', rarity: 'rare'},
+        {type: 'badge', id: '⏱️ Спринтер', label: 'Спринтер', rarity: 'rare'},
+        {type: 'booster', id: 'instant_complete', label: 'Мгновенная сдача (1 задание)', uses: 1, rarity: 'legendary'},
+        {type: 'booster', id: 'time_freeze', label: 'Заморозка дедлайна (24ч)', uses: 2, rarity: 'epic'},
+        {type: 'avatar', id: '⚡', label: 'Аватар: Молния', rarity: 'rare'},
+        {type: 'avatar', id: '🚀', label: 'Аватар: Ракета', rarity: 'epic'},
+        {type: 'avatar', id: '💫', label: 'Аватар: Комета', rarity: 'epic'},
+      ]
+    },
+    {
+      id: 'mystery_case',
+      title: '❓ Мистический кейс',
+      price: 100,
+      rarity: 'epic',
+      items: [
+        {type: 'badge', id: '🔮 Прорицатель', label: 'Прорицатель', rarity: 'epic'},
+        {type: 'badge', id: '🌙 Лунный', label: 'Лунный', rarity: 'epic'},
+        {type: 'badge', id: '✨ Волшебник', label: 'Волшебник', rarity: 'epic'},
+        {type: 'badge', id: '🎇 Иллюзионист', label: 'Иллюзионист', rarity: 'legendary'},
+        {type: 'theme', id: 'theme-mystery', label: 'Тема: Мистическая', rarity: 'legendary'},
+        {type: 'booster', id: 'mystery_multiplier', label: 'Случайный множитель (1.5x-5x)', duration: 43200000, rarity: 'legendary'},
+        {type: 'avatar', id: '🔮', label: 'Аватар: Шар', rarity: 'epic'},
+        {type: 'avatar', id: '🌙', label: 'Аватар: Луна', rarity: 'epic'},
+        {type: 'avatar', id: '✨', label: 'Аватар: Искры', rarity: 'legendary'},
+      ]
+    },
+    {
+      id: 'premium_case',
+      title: '👑 Премиум кейс',
+      price: 200,
+      rarity: 'legendary',
+      items: [
+        {type: 'badge', id: '👑 Король знаний', label: 'Король знаний', rarity: 'legendary'},
+        {type: 'badge', id: '💠 Император', label: 'Император', rarity: 'legendary'},
+        {type: 'badge', id: '🎖️ Генерал', label: 'Генерал', rarity: 'legendary'},
+        {type: 'badge', id: '🏵️ Магистр', label: 'Магистр', rarity: 'legendary'},
+        {type: 'theme', id: 'theme-premium', label: 'Тема: Премиум', rarity: 'legendary'},
+        {type: 'booster', id: 'mega_multiplier', label: '5x ұпай (3 дня)', duration: 259200000, multiplier: 5, rarity: 'legendary'},
+        {type: 'booster', id: 'premium_pass', label: 'Премиум пропуск (30 дней)', duration: 2592000000, rarity: 'legendary'},
+        {type: 'avatar', id: '👑', label: 'Аватар: Золотая корона', rarity: 'legendary'},
+        {type: 'avatar', id: '💎', label: 'Аватар: Большой алмаз', rarity: 'legendary'},
+        {type: 'avatar', id: '🦄', label: 'Аватар: Единорог', rarity: 'legendary'},
+      ]
+    },
+    {
+      id: 'seasonal_case',
+      title: '🎄 Сезонный кейс',
+      price: 60,
+      rarity: 'epic',
+      items: [
+        {type: 'badge', id: '❄️ Зимний', label: 'Зимний', rarity: 'epic'},
+        {type: 'badge', id: '🌸 Весенний', label: 'Весенний', rarity: 'epic'},
+        {type: 'badge', id: '☀️ Летний', label: 'Летний', rarity: 'epic'},
+        {type: 'badge', id: '🍂 Осенний', label: 'Осенний', rarity: 'epic'},
+        {type: 'badge', id: '🎄 Новогодний', label: 'Новогодний', rarity: 'legendary'},
+        {type: 'theme', id: 'theme-winter', label: 'Тема: Зима', rarity: 'epic'},
+        {type: 'theme', id: 'theme-autumn', label: 'Тема: Осень', rarity: 'epic'},
+        {type: 'avatar', id: '❄️', label: 'Аватар: Снежинка', rarity: 'epic'},
+        {type: 'avatar', id: '🎄', label: 'Аватар: Ёлка', rarity: 'legendary'},
+        {type: 'avatar', id: '🌸', label: 'Аватар: Сакура', rarity: 'epic'},
+      ]
+    }
+  ];
+
+  try {
+    container.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
+    grid.style.gap = '16px';
+    
+    cases.forEach(c => {
+      const card = document.createElement('div');
+      card.className = `card rarity-${c.rarity}`;
+      card.style.padding = '20px';
+      card.style.transition = 'all 0.3s';
+      card.style.cursor = 'pointer';
+      
+      const rarityColors = {
+        legendary: '#ffd700',
+        epic: '#a855f7',
+        rare: '#3b82f6',
+        common: '#64748b'
+      };
+      
+      card.innerHTML = `
+        <div style="text-align:center;margin-bottom:12px">
+          <div style="font-size:48px;margin-bottom:8px">${c.title.split(' ')[0]}</div>
+          <div style="font-weight:700;font-size:18px;margin-bottom:4px">${c.title.split(' ').slice(1).join(' ')}</div>
+          <div class="badge" style="background:${rarityColors[c.rarity]}20;color:${rarityColors[c.rarity]}">${c.rarity.toUpperCase()}</div>
+        </div>
+        <div class="small" style="text-align:center;margin-bottom:12px">${c.items.length} призов</div>
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:24px;font-weight:700;color:var(--primary)">🪙 ${c.price}</div>
+        </div>
+        <button class="btn" style="width:100%">Открыть кейс</button>
+      `;
+      
+      card.querySelector('button').onclick = async (e) => {
+        e.stopPropagation();
+        e.target.disabled = true;
+        try {
+          if (!currentUser) { alert('Кіру қажет'); return; }
+          const uid = currentUser.uid;
+          const statRef = db.collection('userStats').doc(uid);
+          const snap = await statRef.get();
+          const user = snap.exists ? snap.data() : { coins: 0 };
+          
+          if ((user.coins || 0) < c.price) {
+            alert('Монеттер жеткіліксіз');
+            return;
+          }
+          
+          await db.runTransaction(async tx => {
+            const s = await tx.get(statRef);
+            if (!s.exists || (s.data().coins || 0) < c.price) throw new Error('Not enough coins');
+            tx.set(statRef, { coins: firebase.firestore.FieldValue.increment(-c.price) }, { merge: true });
+          });
+          
+          await openCaseAnimation(c, uid);
+          await renderUserPoints(uid);
+          
+        } catch (err) {
+          console.error('open case error', err);
+          alert('Қате: ' + (err.message || err));
+        } finally {
+          e.target.disabled = false;
+        }
+      };
+      
+      grid.appendChild(card);
+    });
+    
+    container.appendChild(grid);
+  } catch (e) {
+    container.innerHTML = '<div class="error-msg">Қате</div>';
+    console.error(e);
   }
 }
-async function startBackfill() {
-  if (!confirm('Запустить backfill userStats из коллекции users? (выполнять только под админом)')) return;
-  await backfillUserStatsFromUsers();
+
+async function openCaseAnimation(caseData, userId) {
+  const overlay = document.createElement('div');
+  overlay.className = 'case-opening';
+  overlay.innerHTML = `
+    <div style="text-align:center">
+      <div class="case-box">🎁</div>
+      <div style="color:#fff;font-size:24px;font-weight:700;margin-top:24px">${caseData.title}</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  const items = caseData.items || [];
+  const weights = items.map(item => {
+    const rarityWeights = { common: 50, rare: 30, epic: 15, legendary: 5 };
+    return rarityWeights[item.rarity] || 25;
+  });
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+  let random = Math.random() * totalWeight;
+  let selectedItem = items[0];
+  
+  for (let i = 0; i < items.length; i++) {
+    random -= weights[i];
+    if (random <= 0) {
+      selectedItem = items[i];
+      break;
+    }
+  }
+  
+  overlay.querySelector('.case-box').style.animation = 'none';
+  overlay.querySelector('.case-box').innerHTML = '✨';
+  
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  const rarityColors = {
+    legendary: 'linear-gradient(135deg, #ffd700, #ffed4e)',
+    epic: 'linear-gradient(135deg, #a855f7, #7c3aed)',
+    rare: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+    common: 'linear-gradient(135deg, #64748b, #475569)'
+  };
+  
+  overlay.innerHTML = `
+    <div class="prize-reveal" style="text-align:center;background:var(--card);padding:40px;border-radius:20px;max-width:400px">
+      <div style="font-size:80px;margin-bottom:20px">${getItemIcon(selectedItem)}</div>
+      <div style="font-size:24px;font-weight:700;margin-bottom:12px">${selectedItem.label}</div>
+      <div class="badge" style="background:${rarityColors[selectedItem.rarity]};color:#fff;font-size:16px;padding:8px 16px">${selectedItem.rarity.toUpperCase()}</div>
+      <div style="margin-top:24px">
+        <button class="btn" onclick="this.closest('.case-opening').remove()">Забрать приз</button>
+      </div>
+    </div>
+  `;
+  // Перед await grantPrize(userId, selectedItem); добавь блокировку:
+const lockKey = `case_opening_${userId}`;
+if(window[lockKey]) {
+  alert('Подождите завершения предыдущего открытия');
+  overlay.remove();
+  return;
 }
-    subscribeHomeworks();
+window[lockKey] = true;
+
+try {
+  await grantPrize(userId, selectedItem);
+} finally {
+  delete window[lockKey];
+}
+  await grantPrize(userId, selectedItem);
+}
+
+// Выдача приза
+async function grantPrize(userId, item) {
+  const statRef = db.collection('userStats').doc(userId);
+  
+  try {
+    // Используем транзакцию для атомарности
+    await db.runTransaction(async (tx) => {
+      const userDoc = await tx.get(statRef);
+      const userData = userDoc.exists ? userDoc.data() : {};
+      
+      if (item.type === 'badge') {
+        const badges = userData.badges || [];
+        if (!badges.includes(item.id)) {
+          tx.update(statRef, {
+            badges: firebase.firestore.FieldValue.arrayUnion(item.id)
+          });
+        } else {
+          // Если уже есть - дать компенсацию 5 монет
+          tx.update(statRef, {
+            coins: firebase.firestore.FieldValue.increment(5)
+          });
+        }
+      } else if (item.type === 'theme') {
+        const themes = userData.themes || [];
+        if (!themes.includes(item.id)) {
+          tx.update(statRef, {
+            themes: firebase.firestore.FieldValue.arrayUnion(item.id)
+          });
+        } else {
+          tx.update(statRef, {
+            coins: firebase.firestore.FieldValue.increment(8)
+          });
+        }
+      } else if (item.type === 'avatar') {
+        const avatars = userData.avatars || [];
+        if (!avatars.includes(item.id)) {
+          tx.update(statRef, {
+            avatars: firebase.firestore.FieldValue.arrayUnion(item.id)
+          });
+        } else {
+          tx.update(statRef, {
+            coins: firebase.firestore.FieldValue.increment(10)
+          });
+        }
+      } else if (item.type === 'booster') {
+        const boosterData = {
+          id: item.id + '_' + Date.now(), // Уникальный ID
+          originalId: item.id,
+          label: item.label,
+          duration: item.duration || 0,
+          uses: item.uses || 0,
+          multiplier: item.multiplier || 1,
+          activatedAt: Date.now()
+        };
+        tx.update(statRef, {
+          boosters: firebase.firestore.FieldValue.arrayUnion(boosterData)
+        });
+      }
+    });
+  } catch (e) {
+    console.error('grantPrize error', e);
+    throw e;
+  }
+}
+
+// Иконки для предметов
+function getItemIcon(item) {
+  if (item.type === 'badge') return item.id.split(' ')[0] || '🏅';
+  if (item.type === 'theme') return '🎨';
+  if (item.type === 'avatar') return item.id;
+  if (item.type === 'booster') return '⚡';
+  return '🎁';
+}
+    /* ===== Donate (add coins) ===== */
+    function openDonate(){
+  if(!currentUser){ alert('Кіру қажет'); return }
+  const m = document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML = `
+    <div class="modal">
+      <h4>💰 Донат</h4>
+      <div class="small" style="margin-bottom:16px">Переведите на карту и монеты зачислятся автоматически после проверки</div>
+      
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700;letter-spacing:2px">4400 4302 4200 4312</div>
+        <div style="font-size:18px;font-weight:700;letter-spacing:2px">+7 776 153 9768</div>
+        <div class="small muted-italic">Kaspi Gold</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+        <div class="card" style="text-align:center;padding:12px">
+          <div style="font-size:20px;margin-bottom:4px">50₸</div>
+          <div class="small">= 10 монет</div>
+        </div>
+        <div class="card" style="text-align:center;padding:12px">
+          <div style="font-size:20px;margin-bottom:4px">239₸</div>
+          <div class="small">= 50 монет</div>
+        </div>
+        <div class="card" style="text-align:center;padding:12px">
+          <div style="font-size:20px;margin-bottom:4px">499₸</div>
+          <div class="small">= 150 монет</div>
+        </div>
+        <div class="card" style="text-align:center;padding:12px">
+          <div style="font-size:20px;margin-bottom:4px">699₸</div>
+          <div class="small">= 350 монет</div>
+        </div>
+        <div class="card" style="text-align:center;padding:12px">
+          <div style="font-size:20px;margin-bottom:4px">799₸</div>
+          <div class="small">= 500 монет</div>
+        </div>
+        <div class="card" style="text-align:center;padding:12px">
+          <div style="font-size:20px;margin-bottom:4px">999₸</div>
+          <div class="small">= 1000 монет</div>
+        </div>
+      </div>
+
+      <div class="small muted-italic" style="text-align:center;margin-bottom:12px">После перевода монеты будут зачислены в течение 5 минут</div>
+      <div id="donate-status"></div>
+      <div class="modal-footer"><button class="btn ghost" onclick="this.closest('.modal-backdrop').remove()">Жабу</button></div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  checkDonationStatus(m.querySelector('#donate-status'));
+}
+
+async function checkDonationStatus(statusEl){
+  if(!currentUser) return;
+  try{
+    const snap = await db.collection('donations')
+      .where('userId','==',currentUser.uid)
+      .where('status','==','confirmed')
+      .get();
+    if(!snap.empty){
+      statusEl.innerHTML = '<div class="success-msg">✓ У вас есть подтверждённые донаты!</div>';
+    }
+  }catch(e){console.error(e)}
+}
+
+    /* ===== Store done ===== */
+
+    /* ===== Simple UI helpers ===== */
+    function clearFilters(){ el('search').value=''; el('sort').value='new'; document.querySelectorAll('.subject-item').forEach(x=>x.classList.remove('active')); document.querySelector('.subject-item')?.classList.add('active'); renderFilters(); }
+    function reloadOnce(){ subscribeHomeworks(); renderFilters(); renderLeaderboard(); }
+    function toggleAdd(){ el('add-card').classList.toggle('hidden'); }
+    function showAuth(){ window.scrollTo({top:0,behavior:'smooth'}); el('auth').classList.remove('hidden'); el('app').classList.add('hidden'); }
+    function openProfile(){
+      if(!currentUser){ alert('Кіру қажет'); return }
+      const m = document.createElement('div'); m.className='modal-backdrop';
+      m.innerHTML = `
+        <div class="modal">
+          <h4>👤 Профиль</h4>
+          <div id="profile-body" style="max-height:60vh;overflow:auto"></div>
+          <div class="modal-footer"><button class="btn ghost" onclick="document.body.removeChild(this.closest('.modal-backdrop'))">Жабу</button></div>
+        </div>
+      `;
+      document.body.appendChild(m);
+      loadProfile(m.querySelector('#profile-body'));
+    }
+    async function loadProfile(container) {
+  container.innerHTML = '<div class="small">Жүктелуде...</div>';
+  try {
+    const doc = await db.collection('userStats').doc(currentUser.uid).get();
+    const d = doc.exists ? doc.data() : {};
+    const completedSnap = await db.collection('userStats').doc(currentUser.uid).collection('completed').get();
+    
+    const currentAvatar = d.currentAvatar || '👤';
+    const currentTheme = d.currentTheme || '';
+    const ownedAvatars = d.avatars || [];
+    const ownedThemes = d.themes || [];
+    const badges = d.badges || [];
+    const boosters = d.boosters || [];
+    
+    // Бесплатные аватарки
+    const freeAvatars = ['👤', '😊', '🎓', '📚', '✏️', '🎯', '🌟', '💡'];
+    
+    container.innerHTML = `
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="position:relative;display:inline-block">
+          <div id="current-avatar" style="width:100px;height:100px;margin:0 auto 12px;border-radius:50%;background:var(--gradient-1);display:flex;align-items:center;justify-content:center;font-size:48px;box-shadow:0 8px 24px rgba(0,0,0,0.2);cursor:pointer" onclick="openAvatarPicker()">
+            ${currentAvatar}
+          </div>
+          <button class="btn" style="position:absolute;bottom:0;right:-10px;padding:8px;border-radius:50%;width:40px;height:40px" onclick="openAvatarPicker()">✏️</button>
+        </div>
+        <div style="font-size:20px;font-weight:700;margin-bottom:4px">${escapeHtml(currentUser.email || '')}</div>
+        <div class="small">ID: ${currentUser.uid.slice(0, 8)}</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+        <div class="card" style="text-align:center;padding:16px">
+          <div style="font-size:28px;font-weight:700;color:var(--primary)">${pointsToDisplay(d.points || 0)}</div>
+          <div class="small">Ұпай</div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px">
+          <div style="font-size:28px;font-weight:700;color:var(--warning)">${d.coins || 0}</div>
+          <div class="small">Монет</div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px">
+          <div style="font-size:28px;font-weight:700;color:var(--success)">${completedSnap.size}</div>
+          <div class="small">Выполнено</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="section-title">🏅 Значки (${badges.length})</div>
+        </div>
+        <div class="badge-showcase" id="badges-container">
+          ${badges.length > 0 ? badges.map(b => `<span class="badge-large badge-${getBadgeRarity(b)}">${escapeHtml(b)}</span>`).join('') : '<span class="small muted-italic">Нет значков</span>'}
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="section-title">⚡ Активные бустеры (${boosters.length})</div>
+        </div>
+        <div id="boosters-container">
+          ${boosters.length > 0 ? boosters.map(b => `
+            <div class="card" style="padding:12px;margin-bottom:8px">
+              <div style="font-weight:600">${escapeHtml(b.label || b.id)}</div>
+              <div class="small">${b.uses ? `Осталось: ${b.uses} использований` : 'Активен'}</div>
+            </div>
+          `).join('') : '<span class="small muted-italic">Нет активных бустеров</span>'}
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="section-title">🎨 Темы (${ownedThemes.length})</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${ownedThemes.map(t => `
+            <button class="btn ${currentTheme === t ? 'success' : 'ghost'}" onclick="applyTheme('${t}')">${t.replace('theme-', '')}</button>
+          `).join('')}
+          ${ownedThemes.length === 0 ? '<span class="small muted-italic">Нет тем. Открывайте кейсы!</span>' : ''}
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn ghost" id="profile-refresh">🔄 Обновить</button>
+        <button class="btn danger" id="profile-logout">Шығу</button>
+      </div>
+    `;
+    
+    container.querySelector('#profile-refresh').onclick = async () => {
+      await renderUserPoints(currentUser.uid);
+      loadProfile(container);
+    };
+    container.querySelector('#profile-logout').onclick = () => {
+      logout();
+      document.body.removeChild(document.querySelector('.modal-backdrop'));
+    };
+    
+  } catch (e) {
+    container.innerHTML = '<div class="error-msg">Қате</div>';
+    console.error(e);
+  }
+}
+
+function getBadgeRarity(badge) {
+  const badgeText = String(badge).trim();
+  const legendaryBadges = ['Легенда', 'Мифический', 'Король знаний', 'Император', 'Божественный', 'Космический', 'Звёздный', 'Новогодний'];
+  const epicBadges = ['VIP', 'Элита', 'Мудрец', 'Молниеносный', 'Отличник', 'Чемпион', 'Радужный', 'Зимний', 'Весенний', 'Летний', 'Осенний', 'Прорицатель', 'Лунный', 'Волшебник', 'Иллюзионист'];
+  const rareBadges = ['Активный', 'Целеустремлённый', 'Математик', 'Химик', 'Физик', 'География', 'Программист', 'Историк', 'Художник', 'Музыкант', 'Писатель', 'Актёр', 'Фотограф', 'Ветер', 'Спринтер'];
+  if (legendaryBadges.some(b => badgeText.includes(b))) return 'legendary';
+  if (epicBadges.some(b => badgeText.includes(b))) return 'epic';
+  if (rareBadges.some(b => badgeText.includes(b))) return 'rare';
+  return 'common';
+}
+
+    /* ===== Auth API ===== */
+    async function login(){
+      const email = el('email').value.trim();
+      const password = el('password').value;
+      el('auth-msg').innerText='';
+      if(!email || password.length < 6){ el('auth-msg').innerText='Қате: дұрыс деректер енгізіңіз'; return }
+      try{
+        await auth.signInWithEmailAndPassword(email, password);
+        el('auth-msg').innerText='';
+      }catch(e){
+        console.error('login', e);
+        el('auth-msg').innerText = 'Кіру сәтсіз: '+(e.message||e.code);
+      }
+    }
+
+    async function register(){
+      const email = el('email').value.trim();
+      const password = el('password').value;
+      el('auth-msg').innerText='';
+      if(!email || password.length < 6){ el('auth-msg').innerText='Қате: дұрыс деректер енгізіңіз'; return }
+      
+      try{
+        const cred = await auth.createUserWithEmailAndPassword(email, password);
+        // create initial userStats
+        await db.collection('userStats').doc(cred.user.uid).set({
+          points:0,
+          coins:0,
+          email:cred.user.email||'',
+          displayName:(cred.user.email||'').split('@')[0],
+          badges:[],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, {merge:true});
+        el('auth-msg').innerText='Тіркелді, жүйеге кіріңіз';
+      }catch(e){
+        console.error('register', e);
+        el('auth-msg').innerText = 'Тіркеу сәтсіз: '+(e.message||e.code);
+      }
+    }
+
+    async function logout(){
+      try{
+        await auth.signOut();
+      }catch(e){ console.error('logout', e) }
+    }
+    async function openAvatarPicker() {
+  const m = document.createElement('div');
+  m.className = 'modal-backdrop';
+  m.innerHTML = `
+    <div class="modal">
+      <h4>🎭 Выбор аватарки</h4>
+      <div class="small muted-italic" style="margin-bottom:16px">Платные аватарки стоят 50 монет</div>
+      
+      <div style="margin-bottom:20px">
+        <div class="section-title">Бесплатные</div>
+        <div class="avatar-picker" id="free-avatars"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="section-title">Из кейсов</div>
+        <div class="avatar-picker" id="owned-avatars"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="section-title">Премиум (50 🪙)</div>
+        <div class="avatar-picker" id="premium-avatars"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn ghost" onclick="this.closest('.modal-backdrop').remove()">Отмена</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  
+  const freeAvatars = ['👤', '😊', '🎓', '📚', '✏️', '🎯', '🌟', '💡', '🎒', '📖'];
+  const premiumAvatars = ['🦸', '🧙', '🤖', '👽', '🐉', '🦁', '🐺', '🦅', '🐼', '🦊'];
+  
+  const doc = await db.collection('userStats').doc(currentUser.uid).get();
+  const userData = doc.exists ? doc.data() : {};
+  const ownedAvatars = userData.avatars || [];
+  const currentAvatar = userData.currentAvatar || '👤';
+  const premiumUnlocked = userData.premiumAvatars || [];
+  
+  renderAvatarGrid('free-avatars', freeAvatars, currentAvatar, false, false);
+  renderAvatarGrid('owned-avatars', ownedAvatars, currentAvatar, false, true);
+  renderAvatarGrid('premium-avatars', premiumAvatars, currentAvatar, true, premiumUnlocked);
+}
+
+// Рендер сетки аватарок
+function renderAvatarGrid(containerId, avatars, currentAvatar, isPremium, unlockedList) {
+  const container = document.querySelector(`#${containerId}`);
+  if (!container) return;
+  
+  if (avatars.length === 0) {
+    container.innerHTML = '<div class="small muted-italic" style="grid-column:1/-1">Нет аватарок</div>';
+    return;
+  }
+  
+  avatars.forEach(avatar => {
+    const isLocked = isPremium && !unlockedList.includes(avatar);
+    const div = document.createElement('div');
+    div.className = `avatar-option ${currentAvatar === avatar ? 'selected' : ''} ${isLocked ? 'locked' : ''}`;
+    div.textContent = avatar;
+    
+    div.onclick = async () => {
+      if (isLocked) {
+        if (confirm(`Купить эту аватарку за 50 монет?`)) {
+          try {
+            const statRef = db.collection('userStats').doc(currentUser.uid);
+            await db.runTransaction(async tx => {
+              const snap = await tx.get(statRef);
+              const data = snap.data() || {};
+              if ((data.coins || 0) < 50) throw new Error('Недостаточно монет');
+              
+              tx.update(statRef, {
+                coins: firebase.firestore.FieldValue.increment(-50),
+                premiumAvatars: firebase.firestore.FieldValue.arrayUnion(avatar),
+                currentAvatar: avatar
+              });
+            });
+            
+            await renderUserPoints(currentUser.uid);
+            document.querySelector('.modal-backdrop').remove();
+            openAvatarPicker();
+          } catch (e) {
+            alert('Ошибка: ' + (e.message || e));
+          }
+        }
+      } else {
+        await db.collection('userStats').doc(currentUser.uid).update({
+          currentAvatar: avatar
+        });
+        document.querySelector('#current-avatar').textContent = avatar;
+        document.querySelector('.modal-backdrop').remove();
+      }
+    };
+    
+    container.appendChild(div);
+  });
+}
+
+// Применить тему
+async function applyTheme(themeId) {
+  try {
+    await db.collection('userStats').doc(currentUser.uid).update({
+      currentTheme: themeId
+    });
+    
+    document.body.className = themeId;
+    alert('Тема применена!');
+  } catch (e) {
+    console.error('applyTheme error', e);
+  }
+}
+
+
+    /* ===== Init: load theme, subscribe etc ===== */
+    (function init(){
+      // initial display
+      el('app').classList.add('hidden');
+      // render leaderboard + subjects
+      renderSubjectList();
+      renderLeaderboard();
+      subscribeHomeworks();
+      // try apply saved theme above
+    })();
+
+    // expose for console debugging
+    window._hw_reload = reloadOnce;
+    window._hw_subscribe = subscribeHomeworks;
+    window._hw_renderFilters = renderFilters;
+ 
   </script>
+  <script>
+(function(){
+  const SNOW_COUNT = 70;        // сколько снежинок
+  const SIZE_MIN = 5;           // px
+  const SIZE_MAX = 12;
+  const DUR_MIN = 8;            // s
+  const DUR_MAX = 24;
+  const SCALE_MIN = 0.5;
+  const SCALE_MAX = 1.1;
+  const OPACITY_MIN = 0.5;
+  const OPACITY_MAX = 1.0;
+  const X_OFFSET_MIN = -8;      // vw смещение по х (относительно начала) - позволяет "уноситься" влево/вправо
+  const X_OFFSET_MAX = 8;       // vw
+
+  let layer = document.getElementById('snow-layer');
+  if (!layer) {
+    layer = document.createElement('div');
+    layer.id = 'snow-layer';
+    document.body.appendChild(layer);
+  }
+
+  // Очистить старые
+  layer.innerHTML = '';
+
+  // Помощник — случайное число в диапазоне
+  function rand(min, max) { return Math.random() * (max - min) + min; }
+  function randInt(min, max) { return Math.floor(rand(min, max+1)); }
+
+  for (let i = 0; i < SNOW_COUNT; i++) {
+    const s = document.createElement('div');
+    s.className = 'snow';
+
+    // Случайные параметры
+    const startX = rand(0, 100);            // стартовая позиция в vw
+    const offset = rand(X_OFFSET_MIN, X_OFFSET_MAX); // куда смещается к концу (vw)
+    const endX = startX + offset;
+    const midX = startX + offset * 0.5;
+
+    const size = Math.round(rand(SIZE_MIN, SIZE_MAX));
+    const dur = rand(DUR_MIN, DUR_MAX);
+    const delay = -rand(0, DUR_MAX);       // отрицательная задержка равномерно распределяет снежинки по анимации
+    const scale = rand(SCALE_MIN, SCALE_MAX);
+    const opacity = rand(OPACITY_MIN, OPACITY_MAX);
+    const yMid = rand(20, 60);             // промежуточная высота (vh)
+
+    // Позиция по вертикали старта (можно раскинуть по -30..0vh)
+    const startY = -rand(0, 30);
+
+    // Применяем CSS-переменные (используем vw/vh чтобы позиционировать относительно окна)
+    s.style.setProperty('--x-start', startX + 'vw');
+    s.style.setProperty('--x-mid', midX + 'vw');
+    s.style.setProperty('--x-end', endX + 'vw');
+    s.style.setProperty('--y-mid', yMid + 'vh');
+    s.style.setProperty('--y-start', startY + 'vh');
+    s.style.setProperty('--size', size + 'px');
+    s.style.setProperty('--scale', scale);
+    s.style.setProperty('--dur', dur + 's');
+    s.style.setProperty('--delay', delay + 's');
+    s.style.setProperty('--opacity', opacity);
+
+    // Небольшая вариация формы (oval)
+    if (Math.random() > 0.85) {
+      s.style.borderRadius = '40%';
+      s.style.width = (size * 1.2) + 'px';
+      s.style.height = (size * 0.9) + 'px';
+    }
+
+    // Помещаем в слой
+    layer.appendChild(s);
+  }
+
+  // Динамически обновлять количество при ресайзе — опционально
+  window.addEventListener('resize', () => {
+    // при желании можно пересоздать снежинки: spawnSnow(SNOW_COUNT);
+    // но для простоты оставляем как есть.
+  });
+
+})();
+// Скрыть загрузчик после загрузки
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const loader = document.getElementById('page-loader');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => loader.remove(), 500);
+    }
+  }, 800);
+});
+</script>
+<div id="page-loader" style="position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center;transition:opacity 0.5s">
+  <div style="text-align:center">
+    <div style="font-size:64px;animation:loaderBounce 1s infinite">📚</div>
+    <div style="font-size:20px;font-weight:600;margin-top:16px;color:var(--primary)">Жүктелуде...</div>
+  </div>
+</div>
 </body>
 </html>
