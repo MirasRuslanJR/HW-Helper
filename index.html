@@ -64,6 +64,17 @@
 /* Аватарки */
 .avatar-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin: 16px 0; }
 .avatar-option { width: 70px; height: 70px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 36px; background: var(--card); }
+/* Рамки профиля */
+.profile-frame { position: absolute; inset: -6px; border-radius: 50%; pointer-events: none; z-index: 1; }
+.frame-none { display: none; }
+.frame-gold { border: 4px solid; border-image: linear-gradient(135deg, #ffd700, #ffed4e) 1; animation: frameGlow 2s infinite; }
+.frame-diamond { border: 4px solid; border-image: linear-gradient(135deg, #00d4ff, #7b2ff7) 1; animation: frameGlow 2s infinite; }
+.frame-rainbow { border: 4px solid; border-image: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet) 1; animation: frameRotate 3s linear infinite; }
+.frame-fire { border: 4px solid; border-image: linear-gradient(135deg, #ff0000, #ff7b00, #ffed4e) 1; animation: framePulse 1s infinite; }
+.frame-ice { border: 4px solid; border-image: linear-gradient(135deg, #00f2fe, #4facfe) 1; box-shadow: 0 0 20px rgba(0, 242, 254, 0.5); }
+@keyframes frameGlow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.3); } }
+@keyframes frameRotate { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+@keyframes framePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 .avatar-option:hover { transform: scale(1.1); border-color: var(--primary); }
 .avatar-option.selected { border-color: var(--primary); box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
 .avatar-option.locked { opacity: 0.5; cursor: not-allowed; position: relative; }
@@ -297,6 +308,7 @@
         
         <div style="display:flex;flex-direction:column;gap:8px">
           <button class="btn ghost" onclick="openStore()">🎁 Кейстер</button>
+          <button class="btn ghost" onclick="openArchive()">📦 Архив</button>
           <button class="btn ghost" onclick="openEvents()">📝 СОР/СОЧ</button>
           <button class="btn ghost" onclick="openProfile()">👤 Профиль</button>
           <button class="btn ghost" onclick="openDonate()">💰 Донат</button>
@@ -424,6 +436,55 @@
       } catch(e){ return '' }
     }
     function uidShort(u){ return u ? (u.length>8 ? u.slice(0,6)+'...' : u) : 'unknown' }
+    /* ===== BOOSTER HELPERS ===== */
+function applyBoosters({ boosters = [], now = Date.now(), basePoints = 1, baseCoins = 0, hw = null }) {
+  let multiplier = 1;
+  const toConsumeOriginalIds = [];
+
+  for (const b of boosters) {
+    const activatedAt = b.activatedAt || 0;
+    const activeByTime = !b.duration || (activatedAt + b.duration > now);
+    const hasUses = (typeof b.uses === 'number') ? b.uses > 0 : true;
+    if (!activeByTime || !hasUses) continue;
+
+    if (b.multiplier) {
+      const m = Number(b.multiplier) || 1;
+      multiplier = Math.max(multiplier, m);
+    }
+
+    if (b.originalId === 'instant_complete' && hw && hw.requiresProof) {
+      toConsumeOriginalIds.push(b.originalId);
+    }
+
+    if (b.originalId === 'mystery_multiplier') {
+      const rand = Math.round((1.5 + Math.random() * 3.5) * 10) / 10; // 1.5–5.0
+      multiplier = Math.max(multiplier, rand);
+    }
+
+    if (b.originalId === 'subject_bonus' && hw && b.subject && String(b.subject).toLowerCase() === String(hw.subject || '').toLowerCase()) {
+      multiplier = Math.max(multiplier, Number(b.multiplier) || 1.5);
+      toConsumeOriginalIds.push(b.originalId);
+    }
+  }
+
+  const finalPoints = Math.round(basePoints * multiplier * 100) / 100;
+  const finalCoins = Math.round(baseCoins * multiplier);
+  return { finalPoints, finalCoins, toConsumeOriginalIds, multiplier };
+}
+
+async function consumeBoostersInTx(tx, statRef, boosters, toConsumeOriginalIds = []) {
+  if (!toConsumeOriginalIds.length) return boosters;
+  const res = boosters.map(b => {
+    if (toConsumeOriginalIds.includes(b.originalId)) {
+      if (typeof b.uses === 'number' && b.uses > 0) {
+        return { ...b, uses: b.uses - 1 };
+      }
+    }
+    return b;
+  }).filter(b => !(typeof b.uses === 'number' && b.uses <= 0));
+  return res;
+}
+/* ===== END BOOSTER HELPERS ===== */
 
     /* ===== Subject list render ===== */
     function renderSubjectList(){
@@ -808,11 +869,24 @@
   const input = document.querySelector('#proof-file');
   const msgEl = document.querySelector('#proof-msg');
   const files = input?.files ? Array.from(input.files) : [];
-  if(!files.length){ msgEl.innerHTML='<span class="error-msg">Выберите файл(ы)</span>'; return; }
-  if(!pendingProofTarget || !pendingProofTarget.hwId){ msgEl.innerHTML='<span class="error-msg">Цель не определена</span>'; return; }
-  if(!currentUser){ msgEl.innerHTML='<span class="error-msg">Нужно войти</span>'; return; }
+  msgEl.innerHTML = '';
 
-  // базовые проверки: максимум 8 файлов, каждый до 8MB (поднимите если нужно)
+  if(!pendingProofTarget || !pendingProofTarget.hwId){
+    msgEl.innerHTML = '<span class="error-msg">Цель не определена</span>';
+    return;
+  }
+  if(!currentUser){
+    msgEl.innerHTML = '<span class="error-msg">Нужно войти</span>';
+    return;
+  }
+  if(!files.length){
+    msgEl.innerHTML = '<span class="error-msg">Выберите файл(ы)</span>';
+    return;
+  }
+
+  const hwId = pendingProofTarget.hwId;
+
+  // basic checks
   if(files.length > 8){ msgEl.innerHTML = '<span class="error-msg">Макс 8 файлов</span>'; return; }
   const MAX_SIZE = 8 * 1024 * 1024;
   const allowed = ['image/jpeg','image/png','image/webp','application/pdf','image/jpg','image/heic','image/heif'];
@@ -820,234 +894,279 @@
     if(!allowed.includes(f.type)) { msgEl.innerHTML = '<span class="error-msg">Недопустимый формат (JPG/PNG/WEBP/PDF)</span>'; return; }
     if(f.size > MAX_SIZE){ msgEl.innerHTML = `<span class="error-msg">Файл ${f.name} слишком большой (макс ${MAX_SIZE/1024/1024}MB)</span>`; return; }
   }
-  
 
-  msgEl.innerHTML = '<span class="small">Загрузка...</span>';
-  const hwId = pendingProofTarget.hwId;
-  try{
-    // --- 1) загрузка всех файлов в Cloudinary (или Firebase Storage) параллельно ---
-    const uploadPromises = files.map((f, idx)=>{
-      const url = `https://api.cloudinary.com/v1_1/${encodeURIComponent(CLOUDINARY_CLOUD_NAME)}/upload`;
-      const fd = new FormData();
-      fd.append('file', f);
-      fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      fd.append('context', `hwId=${hwId}&user=${currentUser.uid}`);
-      return fetch(url, { method:'POST', body: fd }).then(async res=>{
-        if(!res.ok){ const t = await res.text().catch(()=>null); throw new Error('Cloudinary error: '+(t||res.status)); }
+  msgEl.innerHTML = '<span class="small">Загрузка файлов...</span>';
+
+  // --- upload helper with timeout ---
+  const uploadWithTimeout = (file, timeout = 30000) => {
+    const controller = new AbortController();
+    const timerId = setTimeout(()=> controller.abort(), timeout);
+    const url = `https://api.cloudinary.com/v1_1/${encodeURIComponent(CLOUDINARY_CLOUD_NAME)}/upload`;
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    fd.append('context', `hwId=${hwId}&user=${currentUser.uid}`);
+    return fetch(url, { method: 'POST', body: fd, signal: controller.signal })
+      .then(async res => {
+        clearTimeout(timerId);
+        if(!res.ok){
+          const t = await res.text().catch(()=>null);
+          throw new Error('Cloudinary error: '+(t||res.status));
+        }
         const j = await res.json();
-        return { url: j.secure_url || j.url, id: j.public_id || `${Date.now()}_${f.name}` };
+        return { url: j.secure_url || j.url, id: j.public_id || `${Date.now()}_${file.name}` };
       });
-    });
+  };
 
-    const uploads = await Promise.all(uploadPromises);
-    const urls = uploads.map(u=>u.url);
-    const ids  = uploads.map(u=>u.id);
+  // Perform uploads (robust)
+  const uploadResults = await Promise.allSettled(files.map(f => uploadWithTimeout(f, 30000)));
+  const successes = uploadResults.filter(r => r.status === 'fulfilled').map(r => r.value);
+  const failures = uploadResults.filter(r => r.status === 'rejected').map(r => (r.reason && r.reason.message) ? r.reason.message : String(r.reason));
 
-    // --- 2) атомарная проверка + начисление: только если ещё нет completion ---
-    const uid = currentUser.uid;
-    const statRef = db.collection('userStats').doc(uid);
-    const compRef = statRef.collection('completed').doc(hwId);
+  if(successes.length === 0){
+    msgEl.innerHTML = `<span class="error-msg">Ошибка загрузки файлов: ${failures.join('; ')}</span>`;
+    return;
+  }
+  if(failures.length > 0){
+    msgEl.innerHTML = `<span class="error-msg">Некоторые файлы не загрузились: ${failures.join('; ')}. Сохранено ${successes.length}/${files.length}.</span>`;
+  } else {
+    msgEl.innerHTML = '<span class="small">Загрузка завершена...</span>';
+  }
 
-    const awardPoints = 1;
-    const awardCoins  = 5;
+  const urls = successes.map(u => u.url);
+  const ids  = successes.map(u => u.id);
 
-    let awarded = false;
+  // --- atomic transaction: create completion and award points/coins (or attach proofs) ---
+  const uid = currentUser.uid;
+  const statRef = db.collection('userStats').doc(uid);
+  const compRef = statRef.collection('completed').doc(hwId);
+
+  // load homework doc to check archived status
+  const hwDoc = await db.collection('homework').doc(hwId).get();
+  const hw = hwDoc.exists ? hwDoc.data() : {};
+  const archived = !!hw.archived;
+
+  // base awards
+  const awardPointsBase = archived ? 0.5 : 1;
+  const awardCoinsBase  = archived ? 0 : 5;
+
+  // объявляем наружу, чтобы использовать после транзакции
+  let finalPoints = 0;
+  let finalCoins = 0;
+  let awarded = false;
+
+  try{
     await db.runTransaction(async tx => {
       const compSnap = await tx.get(compRef);
       if(compSnap.exists){
-        // уже есть completion — не начисляем повторно
-        awarded = false;
-        // обновим в документе completed поле proofUrls: добавим новые ссылки (merge)
+        // already completed: just append / overwrite proof urls/ids safely
         tx.set(compRef, {
-          proofUrls: firebase.firestore.FieldValue.arrayUnion(...urls),
-          proofIds: firebase.firestore.FieldValue.arrayUnion(...ids),
+          proofUrls: urls,
+          proofIds: ids,
           updatedProofAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-      } else {
-        // создаём completion с 1 баллом и сохраняем proofUrls
-        tx.set(compRef, {
-          hwId,
-          title: '',
-          completedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          points: awardPoints,
-          proofUrls: urls,
-          proofIds: ids
-        }, { merge: true });
 
-        // увеличиваем агрегаты пользователя: +1 point и +5 coins
-        tx.set(statRef, {
-          points: firebase.firestore.FieldValue.increment(awardPoints),
-          coins: firebase.firestore.FieldValue.increment(awardCoins),
-          email: currentUser.email || '',
-          displayName: (currentUser.email||'').split('@')[0],
-          updated: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        awarded = true;
+        awarded = false;
+        return;
       }
+
+      // Not completed: compute final awards (consider boosters if helpers exist)
+      const userDoc = await tx.get(statRef);
+      const userData = userDoc.exists ? userDoc.data() : {};
+      let boosters = Array.isArray(userData.boosters) ? userData.boosters.slice() : [];
+
+      // assign base values into outer vars
+      finalPoints = awardPointsBase;
+      finalCoins  = awardCoinsBase;
+      let toConsumeOriginalIds = [];
+
+      if (typeof applyBoosters === 'function') {
+        const res = applyBoosters({ boosters, now: Date.now(), basePoints: awardPointsBase, baseCoins: awardCoinsBase, hw });
+        finalPoints = res.finalPoints;
+        finalCoins  = res.finalCoins;
+        toConsumeOriginalIds = res.toConsumeOriginalIds || [];
+      }
+
+      // consume boosters in tx if helper exists
+      if (toConsumeOriginalIds.length && typeof consumeBoostersInTx === 'function') {
+        boosters = await consumeBoostersInTx(tx, statRef, boosters, toConsumeOriginalIds);
+      }
+
+      // round to 2 decimals for points (if fractional)
+      finalPoints = Math.round(finalPoints * 100) / 100;
+      finalCoins  = Math.round(finalCoins);
+
+      // create completion with points and coins fields
+      tx.set(compRef, {
+        hwId,
+        title: hw.title || '',
+        subject: hw.subject || '',
+        deadline: hw.deadline || '',
+        completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        points: finalPoints,
+        coins: finalCoins,
+        proofUrls: urls,
+        proofIds: ids
+      }, { merge: true });
+
+      // update aggregates
+      tx.set(statRef, {
+        points: firebase.firestore.FieldValue.increment(finalPoints),
+        coins: firebase.firestore.FieldValue.increment(finalCoins),
+        boosters: boosters,
+        email: currentUser.email || '',
+        displayName: currentUser.displayName || (currentUser.email||'').split('@')[0],
+        updated: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      awarded = true;
     });
 
-    // --- 3) Сохраняем отдельную запись submission для модерации / просмотра ---
-    await db.collection('proofs').doc(hwId).collection('submissions').add({
-      uid, displayName: currentUser.displayName || (currentUser.email||'').split('@')[0],
-      imageUrls: urls, imageIds: ids,
-      message: document.querySelector('#proof-text')?.value || '',
-      status: 'pending',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    // attempt to add submission document for moderator/view (best-effort)
+    try {
+      await db.collection('proofs').doc(hwId).collection('submissions').add({
+        uid,
+        displayName: currentUser.displayName || (currentUser.email||'').split('@')[0],
+        imageUrls: urls,
+        imageIds: ids,
+        message: document.querySelector('#proof-text')?.value || '',
+        status: 'pending',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch(subErr){
+      // don't fail the whole flow if this write is forbidden; inform admin in console
+      console.warn('submitProof: could not add submission doc (permissions?).', subErr);
+    }
 
-    // --- 4) UI refresh ---
-    await loadUserCompleted(uid);
-    await renderUserPoints(uid);
-    renderLeaderboard();
-    msgEl.innerHTML = `<span class="success-msg">✓ Загружено${awarded ? ', +1 балл и +5 монет' : ''}</span>`;
-    setTimeout(()=>closeProofModal(), 1200);
-  }catch(err){
-    console.error('submitProof', err);
-    msgEl.innerHTML = `<span class="error-msg">Ошибка: ${err.message||err}</span>`;
+    // UI refresh
+    try { await loadUserCompleted(uid); } catch(e){ console.warn('loadUserCompleted failed', e); }
+    try { await renderUserPoints(uid); } catch(e){ console.warn('renderUserPoints failed', e); }
+    try { renderLeaderboard(); } catch(e){ /* non-critical */ }
+
+    msgEl.innerHTML = `<span class="success-msg">✓ Загружено${awarded ? `, +${finalPoints} балл(ов)${finalCoins ? ' и +' + finalCoins + ' монет' : ''}` : ''}</span>`;
+    // keep message a bit and close modal
+    setTimeout(()=> closeProofModal(), 1200);
+  } catch(err){
+    console.error('submitProof transaction error', err);
+    // Try to surface friendly error to user
+    if (String(err.message || '').includes('NOT_AUTH')) {
+      msgEl.innerHTML = `<span class="error-msg">Ошибка: нужно войти</span>`;
+    } else if (String(err.message || '').includes('NOT_ENOUGH_COINS')) {
+      msgEl.innerHTML = `<span class="error-msg">Недостаточно монет</span>`;
+    } else {
+      msgEl.innerHTML = `<span class="error-msg">Ошибка при сохранении доказательства: ${err.message || err}</span>`;
+    }
   }
 }
 
-    function makeCompleteButton(hwId, hwData){
+function makeCompleteButton(hwId, hwData) {
   const btn = document.createElement('button');
   btn.className = 'complete-btn';
   if (!hwData) hwData = {};
   const done = completedMap && completedMap[hwId];
-  if (done){
+
+  const hw = hwData;
+  const archived = !!hw.archived;
+  const requiresProof = !!hw.requiresProof || archived; // архивные задают proof (как ты требовал)
+
+  if (done) {
     btn.classList.add('done');
-    btn.innerHTML = `✓ Орындадым (${pointsToDisplay(done.points||0)} ұпай)`;
-  } else {
-    btn.innerText = '✓ Орындадым';
+    btn.innerText = `✓ Орындадым (${done.points || 0} ұпай)`;
+    btn.onclick = async () => {
+      if (!currentUser) { alert('Войдите'); return; }
+      // удаление completion в транзакции: мы уменьшаем points и coins на те же значения, что лежат в completion doc
+      try {
+        const uid = currentUser.uid;
+        await db.runTransaction(async (tx) => {
+          const statRef = db.collection('userStats').doc(uid);
+          const compRef = statRef.collection('completed').doc(hwId);
+          const compSnap = await tx.get(compRef);
+          if (!compSnap.exists) return;
+          const prev = compSnap.data();
+          const prevPoints = Number(prev.points || 0);
+          const prevCoins = Number(prev.coins || 0);
+          tx.delete(compRef);
+          tx.set(statRef, {
+            points: firebase.firestore.FieldValue.increment(-prevPoints),
+            coins: firebase.firestore.FieldValue.increment(-prevCoins),
+            updated: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        });
+        // update local state / UI
+        loadUserCompleted(currentUser.uid);
+        renderUserPoints(currentUser.uid);
+      } catch (e) {
+        console.error('remove completion error', e);
+        alert('Ошибка при удалении выполнения');
+      }
+    };
+    return btn;
   }
 
+  btn.innerText = '✓ Орындадым';
   btn.onclick = async () => {
-    if (!currentUser) { alert('Кіру қажет'); return; }
-    btn.disabled = true;
-
+    if (!currentUser) { alert('Войдите'); return; }
     try {
-      const uid = currentUser.uid;
-      const statRef = db.collection('userStats').doc(uid);
-      const compRef = statRef.collection('completed').doc(hwId);
-
-      // Получаем актуальные данные задания (не внутри транзакции — нужно знать, нужен ли proof)
-      const hwDoc = await db.collection('homework').doc(hwId).get();
-      const hw = hwDoc.exists ? hwDoc.data() : (hwData || {});
-      const archived = !!hw.archived;
-      const requiresProof = !!hw.requiresProof && !archived;
-
-      // Если требуется доказательство — откроем модал и не делаем транзакцию
+      // If proof required, open proof modal
       if (requiresProof) {
-        pendingProofTarget = { hwId };
-        // убедись, что openProofModal глобальна
-        if (typeof openProofModal === 'function') openProofModal(hwId);
-        else alert('Функция открытия модалки доказательства не найдена');
-        btn.disabled = false;
+        openProofModal(hwId, hw); // предполагается, что у тебя есть функция открытия модалки для upload
         return;
       }
 
-      // Количество очков за это задание
-      const pts = archived ? 0.5 : 1;
-      const coinsToAdd = 5;
+      // otherwise create completion transactionally, using boosters
+      const uid = currentUser.uid;
+      const txResult = await db.runTransaction(async (tx) => {
+        const statRef = db.collection('userStats').doc(uid);
+        const compRef = statRef.collection('completed').doc(hwId);
 
-      // Транзакция — атомарно добавляем/удаляем completion и обновляем агрегаты пользователя
-      // Пример корректной транзакции (заменяет вложенный db.runTransaction)
-const txResult = await db.runTransaction(async (tx) => {
-  const statRef = db.collection('userStats').doc(uid);
-  const compRef = statRef.collection('completed').doc(hwId);
+        const compSnap = await tx.get(compRef);
+        if (compSnap.exists) return { skipped: true };
 
-  // Получаем текущее состояние completion
-  const compSnap = await tx.get(compRef);
+        const userDoc = await tx.get(statRef);
+        const userData = userDoc.exists ? userDoc.data() : {};
+        let boosters = Array.isArray(userData.boosters) ? userData.boosters.slice() : [];
 
-  // Если есть completion — удаляем и откатываем очки
-  if (compSnap.exists) {
-    const prevPoints = Number(compSnap.data().points || 0);
+        const now = Date.now();
+        const basePoints = archived ? 0.5 : 1;
+        const baseCoins = archived ? 0 : 5;
 
-    // Удаляем completion
-    tx.delete(compRef);
+        const { finalPoints, finalCoins, toConsumeOriginalIds } = applyBoosters({ boosters, now, basePoints, baseCoins, hw });
 
-    // Уменьшаем агрегат пользователя
-    tx.set(statRef, {
-      points: firebase.firestore.FieldValue.increment(-prevPoints),
-      updated: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
+        boosters = await consumeBoostersInTx(tx, statRef, boosters, toConsumeOriginalIds);
 
-    return { action: 'removed', points: prevPoints };
-  }
+        tx.set(compRef, {
+          hwId: hwId,
+          title: hw.title || '',
+          subject: hw.subject || '',
+          deadline: hw.deadline || '',
+          completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          points: finalPoints,
+          coins: finalCoins
+        }, { merge: true });
 
-  // Иначе — добавляем completion и начисляем с учётом бустеров
-  const pts = (typeof awardPoints !== 'undefined') ? awardPoints : 1;
-  const coinsToAdd = (typeof awardCoins !== 'undefined') ? awardCoins : 5;
+        tx.set(statRef, {
+          points: firebase.firestore.FieldValue.increment(finalPoints),
+          coins: firebase.firestore.FieldValue.increment(finalCoins),
+          boosters: boosters,
+          updated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
 
-  // Получаем userStats в транзакции
-  const userDoc = await tx.get(statRef);
-  const userData = userDoc.exists ? userDoc.data() : {};
-  let boosters = Array.isArray(userData.boosters) ? userData.boosters.slice() : [];
+        return { added: true, points: finalPoints };
+      });
 
-  // Вычисляем множитель (максимальный из активных)
-  const now = Date.now();
-  let multiplier = 1;
-  for (let b of boosters) {
-    const activeByTime = !b.duration || ((b.activatedAt || 0) + b.duration > now);
-    const hasUses = (typeof b.uses === 'number') ? b.uses > 0 : true;
-    if (activeByTime && hasUses && b.multiplier && Number(b.multiplier) > 1) {
-      multiplier = Math.max(multiplier, Number(b.multiplier) || 1);
-    }
-  }
-
-  // Если нужно — здесь можно также пометить toConsumeIds и уменьшить uses (см. прежний код),
-  // но я оставляю это точкой расширения; при необходимости добавлю логику списания uses.
-
-  const finalPts = Math.round(pts * multiplier);
-  const finalCoins = Math.round(coinsToAdd * multiplier);
-
-  // Создаём completion
-  tx.set(compRef, {
-    hwId: hwId,
-    title: hw.title || '',
-    subject: hw.subject || '',
-    deadline: hw.deadline || '',
-    completedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    points: finalPts
-  }, { merge: true });
-
-  // Обновляем агрегаты пользователя (points, coins, boosters если изменились)
-  tx.set(statRef, {
-    points: firebase.firestore.FieldValue.increment(finalPts),
-    coins: firebase.firestore.FieldValue.increment(finalCoins),
-    boosters: boosters,
-    updated: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true });
-
-  return { action: 'added', points: finalPts, title: hw.title || '' };
-}); // end runTransaction
-
-// txResult теперь содержит { action: 'added'|'removed', points: number, title?: string }
-
-
-      // После успешной транзакции — обновляем локальное состояние UI
-      if (txResult.action === 'removed') {
-        delete completedMap[hwId];
-        btn.classList.remove('done');
-        btn.innerText = '✓ Орындадым';
-      } else if (txResult.action === 'added') {
-        completedMap[hwId] = { hwId, title: txResult.title || (hw.title||''), points: txResult.points };
-        btn.classList.add('done');
-        btn.innerHTML = `✓ Орындадым (${pointsToDisplay(txResult.points||0)} ұпай)`;
-        // обновляем виджеты
-        await renderUserPoints(currentUser.uid).catch(()=>{});
-        renderLeaderboard();
+      if (txResult && txResult.added) {
+        loadUserCompleted(currentUser.uid);
+        renderUserPoints(currentUser.uid);
       }
-
     } catch (e) {
-      console.error('complete toggle error', e);
-      alert('Қате: ' + (e.message || e));
-    } finally {
-      btn.disabled = false;
+      console.error('complete error', e);
+      alert('Ошибка при отметке выполнения');
     }
   };
 
   return btn;
 }
+
 
 function openProofModal(hwId){
   if(!currentUser){ alert('Требуется вход в систему'); return; }
@@ -1257,6 +1376,85 @@ function closeProofModal(){
       loadEventsList(m.querySelector('#events-list'));
     }
 
+    /* ===== Archive modal ===== */
+function openArchive(){
+  const m = document.createElement('div');
+  m.className='modal-backdrop';
+  m.innerHTML = `
+    <div class="modal" style="max-width:1000px">
+      <h4>📦 Архив заданий</h4>
+      <div class="small muted-italic" style="margin-bottom:16px">Прошедшие задания и архивные (0.5 балла, требуют доказательство)</div>
+      <div id="archive-list" style="max-height:60vh;overflow:auto"></div>
+      <div class="modal-footer">
+        <button class="btn ghost" onclick="this.closest('.modal-backdrop').remove()">Жабу</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  loadArchiveList(m.querySelector('#archive-list'));
+}
+
+async function loadArchiveList(container){
+  container.innerHTML = '<div class="small">Жүктелуде...</div>';
+  try{
+    const now = new Date();
+    const allHw = lastSnapshot.slice();
+    
+    // Фильтруем архивные и просроченные
+    const archived = allHw.filter(hw => {
+      if(hw.archived) return true;
+      if(!hw.deadline) return false;
+      const deadline = typeof hw.deadline.toDate === 'function' ? hw.deadline.toDate() : new Date(hw.deadline);
+      return deadline < now;
+    });
+    
+    if(archived.length === 0){
+      container.innerHTML = '<div class="small muted-italic" style="text-align:center;padding:40px">Архивных заданий нет</div>';
+      return;
+    }
+    
+    container.innerHTML = '';
+    archived.forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'hw';
+      card.style.marginBottom = '12px';
+      
+      const archiveBadge = d.archived ? '<span class="badge warning">Архив (0.5 балла)</span>' : '<span class="badge danger">Просрочено (0.5 балла)</span>';
+      
+      card.innerHTML = `
+        <div class="hw-header">
+          <div style="flex:1;min-width:0">
+            <div class="title">${escapeHtml(d.title||'Атауы жоқ')}</div>
+            <div class="meta-info">
+              <span class="badge">${escapeHtml(d.subject||'')}</span>
+              ${archiveBadge}
+              <span class="badge" style="background:rgba(245,158,11,0.1);color:var(--warning)">Доказ керек</span>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="small" style="font-weight:600">📅 ${escapeHtml(formatDate(d.deadline||d.createdAt||''))}</div>
+            <div class="small">от ${escapeHtml(d.authorEmail||'admin')}</div>
+          </div>
+        </div>
+        ${d.description ? `<div class="desc">${escapeHtml(d.description)}</div>` : ''}
+        <div class="actions" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+          <div id="archive-btn-${d.id}"></div>
+        </div>
+      `;
+      
+      container.appendChild(card);
+      
+      // Добавляем кнопку выполнения
+      const btnContainer = card.querySelector(`#archive-btn-${d.id}`);
+      const completeBtn = makeCompleteButton(d.id, d);
+      btnContainer.appendChild(completeBtn);
+    });
+  }catch(e){
+    container.innerHTML = '<div class="error-msg">Қате</div>';
+    console.error(e);
+  }
+}
+
     async function loadEventsList(container){
       container.innerHTML = '<div class="small">Жүктелуде...</div>';
       try{
@@ -1299,14 +1497,16 @@ function closeProofModal(){
     }
 
     function enableWinter(on){
-      const layer = el('snow-layer');
-      if(on){
-        layer.classList.remove('hidden');
-      } else {
-        layer.classList.add('hidden');
-        layer.innerHTML='';
-      }
-    }
+  const layer = el('snow-layer');
+  // Отключаем снег на мобильных устройствах
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
+  if(on && !isMobile){
+    layer.classList.remove('hidden');
+  } else {
+    layer.classList.add('hidden');
+    layer.innerHTML='';
+  }
+}
     document.documentElement.classList.add('dark');
     /* ===== Store (cases) ===== */
     async function openStore(){
@@ -1631,24 +1831,34 @@ async function openCaseAnimation(caseData, userId) {
   
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  const rarityColors = {
-    legendary: 'linear-gradient(135deg, #ffd700, #ffed4e)',
-    epic: 'linear-gradient(135deg, #a855f7, #7c3aed)',
-    rare: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-    common: 'linear-gradient(135deg, #64748b, #475569)'
-  };
-  
-  overlay.innerHTML = `
-    <div class="prize-reveal" style="text-align:center;background:var(--card);padding:40px;border-radius:20px;max-width:400px">
-      <div style="font-size:80px;margin-bottom:20px">${getItemIcon(selectedItem)}</div>
-      <div style="font-size:24px;font-weight:700;margin-bottom:12px">${selectedItem.label}</div>
-      <div class="badge" style="background:${rarityColors[selectedItem.rarity]};color:#fff;font-size:16px;padding:8px 16px">${selectedItem.rarity.toUpperCase()}</div>
-      <div style="margin-top:24px">
-        <button class="btn" onclick="this.closest('.case-opening').remove()">Забрать приз</button>
-      </div>
-    </div>
-  `;
-  // Перед await grantPrize(userId, selectedItem); добавь блокировку:
+  const rarityBg = {
+  legendary: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
+  epic: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+  rare: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+  common: 'linear-gradient(135deg, #64748b 0%, #475569 100%)'
+};
+
+overlay.innerHTML = `
+  <div class="prize-reveal" style="text-align:center;background:var(--card);padding:40px;border-radius:20px;max-width:500px;box-shadow:0 0 100px ${rarityBg[selectedItem.rarity]}">
+    <div style="font-size:100px;margin-bottom:20px;animation:prizeFloat 2s ease-in-out infinite">${getItemIcon(selectedItem)}</div>
+    <div style="font-size:28px;font-weight:700;margin-bottom:12px">${selectedItem.label}</div>
+    <div class="badge-large" style="background:${rarityBg[selectedItem.rarity]};color:#fff;font-size:18px;padding:12px 24px;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,0.3)">${selectedItem.rarity.toUpperCase()}</div>
+    <div class="small muted-italic" style="margin-bottom:24px">Автозакрытие через 10 секунд</div>
+    <button class="btn" style="font-size:18px;padding:14px 32px" onclick="window.closePrizeModal()">🎉 Забрать приз</button>
+  </div>
+`;
+
+// Добавляем анимацию
+const style = document.createElement('style');
+style.textContent = `@keyframes prizeFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }`;
+document.head.appendChild(style);
+
+// Авто-закрытие через 10 секунд
+setTimeout(() => {
+  if(document.querySelector('.case-opening')) {
+    window.closePrizeModal();
+  }
+}, 10000);
 const lockKey = `case_opening_${userId}`;
 if (window[lockKey]) {
   alert('Подождите завершения предыдущего открытия');
@@ -1693,69 +1903,87 @@ try {
 }
 
 // Выдача приза
-async function grantPrize(userId, item) {
-  const statRef = db.collection('userStats').doc(userId);
-  
-  try {
-    // Используем транзакцию для атомарности
-    await db.runTransaction(async (tx) => {
-      const userDoc = await tx.get(statRef);
-      const userData = userDoc.exists ? userDoc.data() : {};
-      
-      if (item.type === 'badge') {
-        const badges = userData.badges || [];
-        if (!badges.includes(item.id)) {
-          tx.update(statRef, {
-            badges: firebase.firestore.FieldValue.arrayUnion(item.id)
-          });
-        } else {
-          // Если уже есть - дать компенсацию 5 монет
-          tx.update(statRef, {
-            coins: firebase.firestore.FieldValue.increment(5)
-          });
-        }
-      } else if (item.type === 'theme') {
-        const themes = userData.themes || [];
-        if (!themes.includes(item.id)) {
-          tx.update(statRef, {
-            themes: firebase.firestore.FieldValue.arrayUnion(item.id)
-          });
-        } else {
-          tx.update(statRef, {
-            coins: firebase.firestore.FieldValue.increment(8)
-          });
-        }
-      } else if (item.type === 'avatar') {
-        const avatars = userData.avatars || [];
-        if (!avatars.includes(item.id)) {
-          tx.update(statRef, {
-            avatars: firebase.firestore.FieldValue.arrayUnion(item.id)
-          });
-        } else {
-          tx.update(statRef, {
-            coins: firebase.firestore.FieldValue.increment(10)
-          });
-        }
-      } else if (item.type === 'booster') {
-        const boosterData = {
-          id: item.id + '_' + Date.now(), // Уникальный ID
-          originalId: item.id,
-          label: item.label,
-          duration: item.duration || 0,
-          uses: item.uses || 0,
-          multiplier: item.multiplier || 1,
-          activatedAt: Date.now()
-        };
-        tx.update(statRef, {
-          boosters: firebase.firestore.FieldValue.arrayUnion(boosterData)
-        });
+// grantPrize(uid, item) — выдает приз и записывает историю; атомарно при записи в userStats
+async function grantPrize(uid, item) {
+  if (!uid || !item) throw new Error('grantPrize: missing args');
+  const statRef = db.collection('userStats').doc(uid);
+
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(statRef);
+    const data = snap.exists ? snap.data() : {};
+    const boosters = Array.isArray(data.boosters) ? [...data.boosters] : [];
+    const badges = Array.isArray(data.badges) ? [...data.badges] : [];
+    const themes = Array.isArray(data.themes) ? [...data.themes] : [];
+    const avatars = Array.isArray(data.avatars) ? [...data.avatars] : [];
+
+    const prizeRecord = {
+  id: item.id || item.originalId || item.label || 'unknown',
+  type: item.type || 'unknown',
+  label: item.label || item.id || '',
+  rarity: item.rarity || 'common',
+  // serverTimestamp нельзя вкладывать в arrayUnion — используем клиентское время
+  ts: Date.now()
+};
+
+
+    let resp = { awarded: null, compensation: 0 };
+
+    if (item.type === 'badge') {
+      if (badges.includes(item.id)) {
+        resp.compensation = 5;
+        tx.set(statRef, { coins: firebase.firestore.FieldValue.increment(resp.compensation) }, { merge: true });
+      } else {
+        badges.push(item.id);
+        tx.set(statRef, { badges, updated: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        resp.awarded = { type: 'badge', id: item.id, label: item.label };
       }
-    });
-  } catch (e) {
-    console.error('grantPrize error', e);
-    throw e;
-  }
+    } else if (item.type === 'theme') {
+      if (themes.includes(item.id)) {
+        resp.compensation = 8;
+        tx.set(statRef, { coins: firebase.firestore.FieldValue.increment(resp.compensation) }, { merge: true });
+      } else {
+        themes.push(item.id);
+        tx.set(statRef, { themes, updated: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        resp.awarded = { type: 'theme', id: item.id, label: item.label };
+      }
+    } else if (item.type === 'avatar') {
+      if (avatars.includes(item.id)) {
+        resp.compensation = 10;
+        tx.set(statRef, { coins: firebase.firestore.FieldValue.increment(resp.compensation) }, { merge: true });
+      } else {
+        avatars.push(item.id);
+        tx.set(statRef, { avatars, updated: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        resp.awarded = { type: 'avatar', id: item.id, label: item.label };
+      }
+    } else if (item.type === 'booster') {
+      const booster = {
+        id: `${item.id}_${Date.now()}`,
+        originalId: item.id,
+        label: item.label,
+        duration: item.duration || null,
+        uses: (typeof item.uses === 'number') ? item.uses : undefined,
+        multiplier: item.multiplier || null,
+        activatedAt: Date.now()
+      };
+      if (item.id === 'mystery_multiplier' && !booster.multiplier) {
+        booster.multiplier = Math.round((1.5 + Math.random() * 3.5) * 10) / 10;
+      }
+      boosters.push(booster);
+      tx.set(statRef, { boosters, updated: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      resp.awarded = { type: 'booster', originalId: item.id, assignedId: booster.id, label: booster.label };
+    } else {
+      // unknown type — small compensation
+      resp.compensation = 5;
+      tx.set(statRef, { coins: firebase.firestore.FieldValue.increment(resp.compensation) }, { merge: true });
+    }
+
+    // add prize history
+    tx.set(statRef, { prizes: firebase.firestore.FieldValue.arrayUnion(prizeRecord) }, { merge: true });
+
+    return resp;
+  });
 }
+
 
 // Иконки для предметов
 function getItemIcon(item) {
@@ -2234,6 +2462,16 @@ window.addEventListener('load', () => {
     }
   }, 800);
 });
+window.closePrizeModal = function() {
+  const overlay = document.querySelector('.case-opening');
+  if(overlay) overlay.remove();
+};
+
+// Авто-закрытие через 10 секунд
+setTimeout(() => {
+  const overlay = document.querySelector('.case-opening');
+  if(overlay) overlay.remove();
+}, 10000);
 </script>
 <div id="page-loader" style="position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center;transition:opacity 0.5s">
   <div style="text-align:center">
