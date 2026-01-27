@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Сайт более чем не доступен</title>
+  <title>Сайт более чем не доступен — Финал</title>
   <style>
     * {
       margin: 0;
@@ -17,303 +17,396 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #0a0a0f;
+      background: #000000;
       color: white;
       overflow: hidden;
       position: relative;
     }
 
+    /* Простой градиентный фон */
     .background {
-      position: absolute;
+      position: fixed;
       width: 100%;
       height: 100%;
-      overflow: hidden;
       z-index: 0;
-      background: radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a0f 50%);
+      background: 
+        radial-gradient(ellipse at 20% 30%, rgba(102, 126, 234, 0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(240, 147, 251, 0.12) 0%, transparent 50%),
+        linear-gradient(180deg, #0a0a0f 0%, #000000 100%);
     }
 
-    .circle {
-      position: absolute;
+    /* Легкие орбы без blur (только 3 вместо 5) */
+    .orb {
+      position: fixed;
       border-radius: 50%;
-      filter: blur(60px);
-      opacity: 0.3;
-      animation: float 25s infinite ease-in-out;
+      opacity: 0.2;
+      pointer-events: none;
+      will-change: transform;
     }
 
-    .circle:nth-child(1) {
+    .orb-1 {
       width: 400px;
       height: 400px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: radial-gradient(circle, rgba(102, 126, 234, 0.6), transparent 70%);
       top: -150px;
       left: -150px;
-      animation-delay: 0s;
+      filter: blur(60px);
+      animation: float1 20s ease-in-out infinite;
     }
 
-    .circle:nth-child(2) {
+    .orb-2 {
       width: 350px;
       height: 350px;
-      background: linear-gradient(135deg, #f093fb, #f5576c);
+      background: radial-gradient(circle, rgba(240, 147, 251, 0.6), transparent 70%);
       bottom: -100px;
       right: -100px;
-      animation-delay: 3s;
+      filter: blur(60px);
+      animation: float2 25s ease-in-out infinite;
     }
 
-    .circle:nth-child(3) {
-      width: 300px;
-      height: 300px;
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
+    .orb-3 {
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(79, 172, 254, 0.6), transparent 70%);
       top: 40%;
-      right: -150px;
-      animation-delay: 6s;
+      left: 50%;
+      filter: blur(60px);
+      animation: float3 22s ease-in-out infinite;
     }
 
-    .circle:nth-child(4) {
-      width: 250px;
-      height: 250px;
-      background: linear-gradient(135deg, #fa709a, #fee140);
-      bottom: 30%;
-      left: -100px;
-      animation-delay: 9s;
+    @keyframes float1 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(80px, -80px); }
     }
 
-    @keyframes float {
-      0%, 100% {
-        transform: translate(0, 0) scale(1);
-        opacity: 0.3;
-      }
-      25% {
-        transform: translate(50px, -50px) scale(1.1);
-        opacity: 0.4;
-      }
-      50% {
-        transform: translate(-30px, 30px) scale(0.9);
-        opacity: 0.25;
-      }
-      75% {
-        transform: translate(30px, 50px) scale(1.05);
-        opacity: 0.35;
-      }
+    @keyframes float2 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-70px, 70px); }
     }
 
+    @keyframes float3 {
+      0%, 100% { transform: translate(-50%, 0); }
+      50% { transform: translate(-50%, -60px); }
+    }
+
+    /* Простая сетка */
     .grid {
-      position: absolute;
+      position: fixed;
       width: 100%;
       height: 100%;
       background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 50px 50px;
-      animation: gridMove 20s linear infinite;
+        linear-gradient(rgba(102, 126, 234, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(102, 126, 234, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+      opacity: 0.4;
     }
 
-    @keyframes gridMove {
-      0% {
-        transform: translate(0, 0);
-      }
-      100% {
-        transform: translate(50px, 50px);
-      }
+    /* Canvas для частиц */
+    #particleCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
     }
 
+    /* Оптимизированный контейнер */
     .container {
       position: relative;
-      z-index: 1;
-      max-width: 650px;
-      padding: 70px 50px;
-      background: rgba(20, 20, 30, 0.7);
-      backdrop-filter: blur(20px);
-      border-radius: 40px;
+      z-index: 10;
+      max-width: 750px;
+      padding: 80px 60px;
+      background: rgba(15, 15, 25, 0.6);
+      backdrop-filter: blur(30px);
+      border-radius: 50px;
       border: 2px solid rgba(255, 255, 255, 0.1);
       box-shadow: 
-        0 30px 80px rgba(0, 0, 0, 0.6),
+        0 30px 80px rgba(0, 0, 0, 0.7),
+        0 0 60px rgba(102, 126, 234, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
       animation: slideIn 1s ease-out;
+      transition: transform 0.2s ease;
     }
 
     @keyframes slideIn {
       from {
         opacity: 0;
-        transform: translateY(40px) scale(0.95);
+        transform: translateY(50px);
       }
       to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
       }
     }
 
+    /* Простой glow */
+    .container::before {
+      content: '';
+      position: absolute;
+      inset: -15px;
+      background: radial-gradient(circle, rgba(102, 126, 234, 0.2), transparent 70%);
+      border-radius: 60px;
+      filter: blur(30px);
+      opacity: 0.5;
+      z-index: -1;
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Иконка */
+    .icon-wrapper {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin: 0 auto 40px;
+    }
+
     .icon {
-      width: 140px;
-      height: 140px;
-      margin: 0 auto 35px;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, 
+        rgba(102, 126, 234, 0.3), 
+        rgba(118, 75, 162, 0.3)
+      );
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 70px;
-      position: relative;
-      animation: iconPulse 3s ease-in-out infinite;
+      font-size: 90px;
       box-shadow: 
-        0 0 30px rgba(102, 126, 234, 0.3),
-        0 0 60px rgba(118, 75, 162, 0.2),
-        inset 0 0 20px rgba(255, 255, 255, 0.05);
+        0 0 40px rgba(102, 126, 234, 0.4),
+        inset 0 0 30px rgba(255, 255, 255, 0.1);
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      animation: iconFloat 3s ease-in-out infinite;
     }
 
-    .icon::before {
-      content: '';
+    @keyframes iconFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Один ripple эффект */
+    .ripple {
       position: absolute;
-      width: 160px;
-      height: 160px;
-      border: 2px solid rgba(102, 126, 234, 0.3);
+      inset: -30px;
+      border: 2px solid rgba(102, 126, 234, 0.4);
       border-radius: 50%;
       animation: ripple 3s ease-out infinite;
     }
 
-    @keyframes iconPulse {
-      0%, 100% {
-        transform: scale(1);
-        box-shadow: 
-          0 0 30px rgba(102, 126, 234, 0.3),
-          0 0 60px rgba(118, 75, 162, 0.2);
-      }
-      50% {
-        transform: scale(1.05);
-        box-shadow: 
-          0 0 40px rgba(102, 126, 234, 0.5),
-          0 0 80px rgba(118, 75, 162, 0.3);
-      }
-    }
-
     @keyframes ripple {
       0% {
-        transform: scale(1);
-        opacity: 1;
+        transform: scale(0.9);
+        opacity: 0;
+      }
+      50% {
+        opacity: 0.6;
       }
       100% {
-        transform: scale(1.5);
+        transform: scale(1.4);
         opacity: 0;
       }
     }
 
+    /* Типографика */
     h1 {
-      font-size: 48px;
-      font-weight: 800;
-      margin-bottom: 20px;
-      letter-spacing: -2px;
+      font-size: 58px;
+      font-weight: 900;
+      margin-bottom: 25px;
+      letter-spacing: -3px;
       line-height: 1.1;
-      background: linear-gradient(135deg, #ffffff, #a0a0a0);
+      background: linear-gradient(135deg, #ffffff 0%, #667eea 50%, #f093fb 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      animation: titleGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes titleGlow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.9; }
     }
 
     .subtitle {
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 20px;
-      opacity: 0.8;
-      color: #b0b0b0;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 25px;
+      color: #e0e0e0;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      opacity: 0.95;
     }
 
     .message {
-      font-size: 17px;
-      line-height: 1.8;
-      opacity: 0.75;
-      margin-bottom: 40px;
-      color: #d0d0d0;
+      font-size: 18px;
+      line-height: 2;
+      opacity: 0.85;
+      margin-bottom: 45px;
+      color: #d8d8d8;
+      animation: fadeIn 1s ease-out 0.3s both;
     }
 
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 0.85;
+        transform: translateY(0);
+      }
+    }
+
+    /* Делитель */
     .divider {
-      width: 80px;
+      width: 100px;
       height: 4px;
-      background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
-      margin: 35px auto;
+      background: linear-gradient(90deg, 
+        transparent, 
+        #667eea, 
+        #f093fb, 
+        transparent
+      );
+      margin: 40px auto;
       border-radius: 2px;
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
       animation: glow 3s ease-in-out infinite;
     }
 
     @keyframes glow {
-      0%, 100% {
-        opacity: 0.5;
-        box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
-      }
-      50% {
-        opacity: 1;
-        box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
-      }
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
     }
 
     .footer {
-      font-size: 15px;
-      opacity: 0.6;
+      font-size: 17px;
+      opacity: 0.7;
       font-style: italic;
-      color: #a0a0a0;
+      color: #b8b8b8;
+      animation: fadeIn 1s ease-out 0.5s both;
     }
 
-    .particle {
-      position: absolute;
-      width: 3px;
-      height: 3px;
-      background: white;
-      border-radius: 50%;
-      animation: particleFloat 15s infinite;
-      opacity: 0;
+    /* Кнопка переключения производительности */
+    .perf-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      padding: 12px 24px;
+      background: rgba(20, 20, 30, 0.8);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      font-weight: 600;
     }
 
-    @keyframes particleFloat {
-      0% {
-        transform: translateY(100vh) translateX(0);
-        opacity: 0;
-      }
-      10% {
-        opacity: 0.5;
-      }
-      90% {
-        opacity: 0.5;
-      }
-      100% {
-        transform: translateY(-100px) translateX(100px);
-        opacity: 0;
-      }
+    .perf-toggle:hover {
+      background: rgba(102, 126, 234, 0.2);
+      border-color: rgba(102, 126, 234, 0.6);
+      transform: translateY(-2px);
     }
 
+    /* Режим высокой производительности */
+    .perf-mode .orb {
+      display: none;
+    }
+
+    .perf-mode .grid {
+      display: none;
+    }
+
+    .perf-mode .container::before {
+      display: none;
+    }
+
+    .perf-mode .ripple {
+      display: none;
+    }
+
+    /* Мобильная адаптация */
     @media (max-width: 768px) {
       .container {
         margin: 20px;
-        padding: 50px 35px;
+        padding: 60px 40px;
+        border-radius: 40px;
       }
 
       h1 {
-        font-size: 36px;
+        font-size: 44px;
+        letter-spacing: -2px;
       }
 
       .subtitle {
-        font-size: 19px;
+        font-size: 20px;
+        letter-spacing: 2px;
+      }
+
+      .icon-wrapper {
+        width: 140px;
+        height: 140px;
       }
 
       .icon {
-        width: 110px;
-        height: 110px;
-        font-size: 55px;
+        font-size: 70px;
       }
 
       .message {
-        font-size: 16px;
+        font-size: 17px;
+      }
+
+      .perf-toggle {
+        top: 10px;
+        right: 10px;
+        padding: 10px 20px;
+        font-size: 13px;
+      }
+
+      /* На мобильных устройствах по умолчанию меньше эффектов */
+      .orb {
+        opacity: 0.15;
+      }
+    }
+
+    /* Автоопределение слабых устройств */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
       }
     }
   </style>
 </head>
 <body>
-  <div class="background">
-    <div class="grid"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-  </div>
+  <button class="perf-toggle" onclick="togglePerformance()">
+    <span id="perfText">⚡ Режим производительности: ВЫКЛ</span>
+  </button>
+
+  <div class="background"></div>
+  <div class="grid"></div>
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <canvas id="particleCanvas"></canvas>
 
   <div class="container">
-    <div class="icon">💤</div>
+    <div class="icon-wrapper">
+      <div class="icon">💤</div>
+      <div class="ripple"></div>
+    </div>
+
     <h1>Сайт отключён</h1>
     <p class="subtitle">Срок: Навсегда</p>
     
@@ -331,13 +424,203 @@
   </div>
 
   <script>
-    for (let i = 0; i < 30; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.style.left = Math.random() * 100 + '%';
-      particle.style.animationDelay = Math.random() * 15 + 's';
-      particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-      document.querySelector('.background').appendChild(particle);
+    // Определение производительности устройства
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isLowEnd = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+    
+    // Настройки частиц в зависимости от устройства
+    let particleCount = 20; // По умолчанию мало частиц
+    let starCount = 30;
+    
+    if (isMobile || isLowEnd) {
+      particleCount = 10;
+      starCount = 20;
+    }
+
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
+    
+    let particles = [];
+    let stars = [];
+    let animationId;
+    let perfMode = false;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Легкие частицы
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height + 50;
+        this.size = Math.random() * 3 + 1;
+        this.speedY = -Math.random() * 0.8 - 0.3;
+        this.speedX = Math.random() * 0.3 - 0.15;
+        this.opacity = Math.random() * 0.4 + 0.2;
+      }
+
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+
+        if (this.y < -20) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = `rgba(102, 126, 234, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Звёзды
+    class Star {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 1.5;
+        this.opacity = Math.random() * 0.5 + 0.2;
+        this.speed = Math.random() * 0.02 + 0.01;
+        this.growing = Math.random() > 0.5;
+      }
+
+      update() {
+        if (this.growing) {
+          this.opacity += this.speed;
+          if (this.opacity >= 0.8) this.growing = false;
+        } else {
+          this.opacity -= this.speed;
+          if (this.opacity <= 0.2) this.growing = true;
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Инициализация
+    function init() {
+      particles = [];
+      stars = [];
+      
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+
+      for (let i = 0; i < starCount; i++) {
+        stars.push(new Star());
+      }
+    }
+
+    init();
+
+    // Оптимизированная анимация
+    let lastTime = 0;
+    const fps = 60;
+    const interval = 1000 / fps;
+
+    function animate(currentTime) {
+      animationId = requestAnimationFrame(animate);
+
+      const deltaTime = currentTime - lastTime;
+      if (deltaTime < interval) return;
+      lastTime = currentTime - (deltaTime % interval);
+
+      if (perfMode) return; // Не рисуем в режиме производительности
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach(star => {
+        star.update();
+        star.draw();
+      });
+
+      particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+    }
+
+    animate(0);
+
+    // 3D эффект контейнера (легкий)
+    const container = document.querySelector('.container');
+    let ticking = false;
+
+    function update3D(x, y) {
+      const rect = container.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      
+      const mouseX = x - rect.left;
+      const mouseY = y - rect.top;
+      
+      const rotateX = ((mouseY - centerY) / centerY) * 5;
+      const rotateY = ((centerX - mouseX) / centerX) * 5;
+      
+      container.style.transform = `
+        perspective(1000px) 
+        rotateX(${rotateX}deg) 
+        rotateY(${rotateY}deg)
+      `;
+    }
+
+    container.addEventListener('mousemove', (e) => {
+      if (!ticking && !perfMode) {
+        window.requestAnimationFrame(() => {
+          update3D(e.clientX, e.clientY);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+
+    container.addEventListener('mouseleave', () => {
+      container.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+    });
+
+    // Переключение режима производительности
+    function togglePerformance() {
+      perfMode = !perfMode;
+      document.body.classList.toggle('perf-mode');
+      
+      const text = document.getElementById('perfText');
+      if (perfMode) {
+        text.textContent = '⚡ Режим производительности: ВКЛ';
+        // Очищаем canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      } else {
+        text.textContent = '⚡ Режим производительности: ВЫКЛ';
+      }
+    }
+
+    // Пауза при неактивной вкладке
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animationId);
+      } else {
+        animate(0);
+      }
+    });
+
+    // Автоматическое включение режима производительности на слабых устройствах
+    if (isMobile || isLowEnd) {
+      console.log('Слабое устройство обнаружено, оптимизация включена');
     }
   </script>
 </body>
