@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="kz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Үй тапсырмалары — Homework Helper</title>
+  <meta name="description" content="Үй тапсырмаларын басқару — қарапайым және қауіпсіз" />
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div id="logo-img">📚</div>
+        <div>
+          <h1 class="thetitle">Үй тапсырмалары</h1>
+          <div class="small">Студенттерге арналған платформа</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="small" id="user-email"></div>
+        <div class="small" id="user-points"></div>
+        <div class="small" id="user-coins"></div>
+        <button id="btn-logout" class="btn ghost hidden" onclick="logout()">Шығу</button>
+        <button id="btn-show-auth" class="btn" onclick="showAuth()">Кіру / Тіркелу</button>
+      </div>
+    </header>
+
+    <main id="app" class="main hidden">
+      <aside class="sidebar">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div class="section-title">🔍 Іздеу</div>
+          <button class="btn ghost" style="padding:6px 12px;font-size:12px" onclick="clearFilters()">Тазалау</button>
+        </div>
+
+        <div class="search">
+          <input id="search" placeholder="Іздеу..." oninput="renderFilters()" />
+          <select id="sort" onchange="renderFilters()">
+            <option value="new">Жаңадан — ескіге</option>
+            <option value="old">Ескідан — жаңға</option>
+            <option value="deadline">Дедлайн бойынша</option>
+            <option value="archive">Тек архив</option>
+          </select>
+        </div>
+
+        <div class="section-title">📖 Пәндер</div>
+        <div id="subject-list" class="subject-list"></div>
+
+        <div class="leaderboard">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div class="section-title" style="margin:0">🏆 Рейтинг</div>
+            <button class="btn ghost" style="padding:4px 10px;font-size:11px" onclick="openLeaderboardFull()">Толық</button>
+          </div>
+          <div id="leaderboard-list"></div>
+          <div class="small" style="margin-top:12px;text-align:center">*Тапсырма орындаған сайын ұпай қосылады</div>
+        </div>
+
+        <div class="divider"></div>
+        
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn ghost" onclick="openStore()">🎁 Кейстер</button>
+          <button class="btn ghost" onclick="openArchive()">📦 Архив</button>
+          <button class="btn ghost" onclick="openEvents()">📝 СОР/СОЧ</button>
+          <button class="btn ghost" onclick="openProfile()">👤 Профиль</button>
+          <button class="btn ghost" onclick="openDonate()">💰 Донат</button>
+        </div>
+
+        <div class="small" style="margin-top:16px;text-align:center;opacity:0.7">v2.0 • Made with ❤️</div>
+      </aside>
+
+      <section class="content">
+        <div class="content-header">
+          <div>
+            <h2 style="font-size:24px;margin-bottom:4px">Үй жұмыстары</h2>
+            <div class="small">Барлығы: <strong id="count">0</strong> тапсырма</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn ghost" onclick="reloadOnce()">🔄 Жаңарту</button>
+            <button class="btn hidden" id="open-add" onclick="toggleAdd()">➕ Қосу</button>
+          </div>
+        </div>
+
+        <div id="add-card" class="card hidden" style="margin-bottom:20px">
+          <h4 style="margin-bottom:16px">Жаңа тапсырма қосу</h4>
+          <form class="add-form" onsubmit="event.preventDefault();addHomework();" style="display:flex;flex-direction:column;gap:12px">
+            <input id="hw-title" placeholder="Тақырып *" required />
+            <select id="hw-subject" required>
+              <option value="">Пән таңдаңыз *</option>
+              <option>Ағылшын тілі</option>
+              <option>Биология</option>
+              <option>География</option>
+              <option>Дүниежүзі тарихы</option>
+              <option>Информатика</option>
+              <option>Қазақ тілі мен әдебиеті</option>
+              <option>Қазақстан тарихы</option>
+              <option>Құқық негіздері</option>
+              <option>Орыс тілі мен әдебиеті</option>
+              <option>Математика</option>
+              <option>Физика</option>
+              <option>Химия</option>
+            </select>
+            <input id="hw-deadline" type="date" required />
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <input id="hw-requires-proof" type="checkbox" style="width:auto" />
+              <span>Доказательство талап етіледі</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <input id="hw-archived" type="checkbox" style="width:auto" />
+              <span>Архив (0.5 балл)</span>
+            </label>
+            <textarea id="hw-desc" placeholder="Сипаттама (міндетті емес)"></textarea>
+            <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+              <div id="add-msg" class="small" style="flex:1"></div>
+              <button class="btn ghost" type="button" onclick="toggleAdd()">Болдырмау</button>
+              <button class="btn" type="submit">Қосу</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="homework-list" class="hw-list"></div>
+      </section>
+    </main>
+
+    <div id="auth" class="auth-card">
+      <h3>Кіру немесе тіркелу</h3>
+      <div class="small" style="margin-bottom:24px">Email және құпия сөз арқылы жүйеге кіріңіз</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <input id="email" type="email" placeholder="Email мекенжайы" />
+        <input id="password" type="password" placeholder="Құпиясөз (кемінде 6 таңба)" />
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="login()" style="flex:1">Кіру</button>
+          <button class="btn ghost" onclick="register()" style="flex:1">Тіркелу</button>
+        </div>
+        <div id="auth-msg" class="error-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-proof" class="hidden"></div>
+  <div id="modal-store" class="hidden"></div>
+  <div id="modal-profile" class="hidden"></div>
+  <div id="modal-events" class="hidden"></div>
+  <div id="modal-donate" class="hidden"></div>
+  <div id="modal-leaderboard" class="hidden"></div>
+  <div id="snow-layer" aria-hidden="true"></div>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="./main.js"></script>
+  <script src="./snowandother.js"></script>
+<div id="page-loader" style="position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center;transition:opacity 0.5s">
+  <div style="text-align:center">
+    <div style="font-size:64px;animation:loaderBounce 1s infinite">📚</div>
+    <div style="font-size:20px;font-weight:600;margin-top:16px;color:var(--primary)">Жүктелуде...</div>
+  </div>
+</div>
+</body>
+</html>
